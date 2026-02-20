@@ -58,11 +58,10 @@ Add this service definition to your existing `docker-compose.yml` under the `ser
       - ALLOWED_HOSTS=rustdesk.${DOMAIN}
     
     volumes:
-      # Persistent storage for generated files and database
+      # Persistent storage for generated files
       - ./rustdesk-generator/exe:/app/exe
       - ./rustdesk-generator/png:/app/png
       - ./rustdesk-generator/media:/app/media
-      - ./rustdesk-generator/db.sqlite3:/app/db.sqlite3
     
     networks:
       - proxy
