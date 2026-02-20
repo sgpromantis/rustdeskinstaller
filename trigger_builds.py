@@ -32,10 +32,10 @@ VERSION = "1.3.3"  # RustDesk version to build (1.3.3, 1.3.6, 1.3.7, 1.4.0, 1.4.
 
 # Logo Configuration
 # Option 1: Use a URL to your logo (recommended for GitHub Actions)
-LOGO_URL = ""  # Set to your logo URL, or leave empty for no logo
+LOGO_URL = "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
 # Option 2: Use GitHub raw URL after committing logo to repo
 # Example: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/prepared_images/promantis_logo.png"
-ICON_URL = ""  # Set to your icon URL, or leave empty for no icon
+ICON_URL = "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"  # Using same logo for icon
 
 # Build UUID (unique identifier for this build)
 BUILD_UUID = str(uuid.uuid4())
