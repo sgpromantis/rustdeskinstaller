@@ -18,29 +18,29 @@ services:
       
       # Django Configuration
       - SECRET_KEY=${SECRET_KEY}
-      - GENURL=https://rustdesk.promantis.de
+      - GENURL=https://rustdesk.${DOMAIN}
       - PROTOCOL=https
-      - ALLOWED_HOSTS=rustdesk.promantis.de
+      - ALLOWED_HOSTS=rustdesk.${DOMAIN}
     
     volumes:
       # Persistent storage for generated files and database
-      - ./exe:/app/exe          # Generated executables
-      - ./png:/app/png          # Logo/icon files
-      - ./media:/app/media      # Other media uploads
-      - ./db.sqlite3:/app/db.sqlite3  # SQLite database
+      - ./rustdesk-generator/exe:/app/exe          # Generated executables
+      - ./rustdesk-generator/png:/app/png          # Logo/icon files
+      - ./rustdesk-generator/media:/app/media      # Other media uploads
+      - ./rustdesk-generator/db.sqlite3:/app/db.sqlite3  # SQLite database
     
     networks:
-      - traefik-network
+      - proxy
     
     labels:
       # Traefik configuration
       - "traefik.enable=true"
       
       # Router configuration - matches specific paths for Django app
-      - "traefik.http.routers.rustdesk-gen.rule=Host(`rustdesk.promantis.de`) && (PathPrefix(`/generator`) || PathPrefix(`/updategh`) || PathPrefix(`/api/updategh`) || PathPrefix(`/check_for_file`) || PathPrefix(`/download`) || PathPrefix(`/get_png`) || PathPrefix(`/save_custom_client`) || PathPrefix(`/creategh`) || PathPrefix(`/startgh`))"
+      - "traefik.http.routers.rustdesk-gen.rule=Host(`rustdesk.${DOMAIN}`) && (PathPrefix(`/generator`) || PathPrefix(`/updategh`) || PathPrefix(`/api/updategh`) || PathPrefix(`/check_for_file`) || PathPrefix(`/download`) || PathPrefix(`/get_png`) || PathPrefix(`/save_custom_client`) || PathPrefix(`/creategh`) || PathPrefix(`/startgh`))"
       
       # HTTPS configuration
-      - "traefik.http.routers.rustdesk-gen.entrypoints=websecure"
+      - "traefik.http.routers.rustdesk-gen.entrypoints=https"
       - "traefik.http.routers.rustdesk-gen.tls=true"
       - "traefik.http.routers.rustdesk-gen.tls.certresolver=letsencrypt"
       
@@ -49,9 +49,15 @@ services:
       
       # Priority: Higher than RustDesk server to ensure Django paths match first
       - "traefik.http.routers.rustdesk-gen.priority=100"
+      
+      # Auto-update with Watchtower
+      - "com.centurylinklabs.watchtower.enable=true"
+      
+      # Network
+      - "traefik.docker.network=proxy"
 
 networks:
-  traefik-network:
+  proxy:
     external: true
 
 # DEPLOYMENT INSTRUCTIONS:
