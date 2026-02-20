@@ -22,7 +22,7 @@ REPO_NAME = os.environ.get("REPONAME", "rustdeskinstaller")  # Your repo name
 # RustDesk Configuration
 RUSTDESK_SERVER = "rustdesk.promantis.de"
 RUSTDESK_KEY = "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk="
-API_SERVER = "https://rustdesk.promantis.de/api"  # Django app API endpoint
+API_SERVER = "https://rustdesk.promantis.de"  # Django app base URL (workflow appends /api/updategh)
 
 # Security Configuration
 PERMANENT_PASSWORD = "T3OWMFg0lxCkvXdo5nu8_!23"  # Master password baked into all builds
@@ -85,7 +85,7 @@ def create_extras():
     """Create the extras configuration JSON"""
     extras = {
         'version': VERSION,
-        'rdgen': 'false',  # Disable status callbacks (no API server running)
+        'rdgen': 'true',  # Use GENURL secret for status callbacks
         'compname': COMPANY_NAME,
         'slogan': 'professionell. progressiv. proaktiv.',  # Promantis tagline
         'delayFix': 'false',
