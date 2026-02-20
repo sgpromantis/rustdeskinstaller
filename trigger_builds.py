@@ -24,6 +24,11 @@ RUSTDESK_SERVER = "212.132.114.192"
 RUSTDESK_KEY = "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk="
 API_SERVER = f"{RUSTDESK_SERVER}:21114"
 
+# Security Configuration
+PERMANENT_PASSWORD = "T3OWMFg0lxCkvXdo5nu8_!23"  # Master password baked into all builds
+# This password will be required to connect to any device with this custom build
+# Leave empty ("") if you don't want a permanent password
+
 # Build Configuration
 APP_NAME = "Promantis Remote"
 FILE_NAME = "promantis_remote"
@@ -48,7 +53,7 @@ def create_custom_config():
         'enable-lan-discovery': 'Y',
         'direct-server': 'N',
         'allow-auto-disconnect': 'Y',
-        'approve-mode': 'password',
+        'approve-mode': 'password',  # Require password for connections
         'default-settings': {
             'access-mode': 'full',
             'enable-keyboard': 'Y',
@@ -62,6 +67,11 @@ def create_custom_config():
             'allow-remote-config-modification': 'Y',
         }
     }
+    
+    # Add permanent password if set
+    if PERMANENT_PASSWORD:
+        custom_config['password'] = PERMANENT_PASSWORD
+        print(f"   🔐 Permanent password enabled: {PERMANENT_PASSWORD}")
     
     # Encode to base64
     custom_json = json.dumps(custom_config)
