@@ -16,3 +16,7 @@ rdgen/lib/
 rdgen/include/
 rdgen/pyvenv.cfg
 .env
+
+# Test scripts (contain temporary credentials)
+check_status.py
+test_api.py

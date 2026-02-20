@@ -132,6 +132,8 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "5% complete"}'
 
+          ignoreSsl: true
+
       - name: Checkout source code
         if: ${{ env.VERSION != 'master' }}
         uses: actions/checkout@v4
@@ -277,6 +279,8 @@ jobs:
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "10% complete"}'
+
+          ignoreSsl: true
 
       - name: Install flutter
         uses: subosito/flutter-action@v2
@@ -588,6 +592,8 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "20% complete"}'
 
+          ignoreSsl: true
+
       - name: Restore bridge files
         uses: actions/download-artifact@master
         with:
@@ -601,6 +607,8 @@ jobs:
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "30% complete"}'
+
+          ignoreSsl: true
 
       - name: Setup vcpkg with Github Actions binary cache
         uses: lukka/run-vcpkg@v11
@@ -635,6 +643,8 @@ jobs:
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "50% complete"}'
+
+          ignoreSsl: true
     
       - name: Create custom.txt file
         shell: bash
@@ -679,6 +689,8 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "60% complete"}'
 
+          ignoreSsl: true
+
       # - name: Copy service file
       #   run: |
       #     cp -rf ../target/release/service ./build/macos/Build/Products/Release/RustDesk.app/Contents/MacOS/
@@ -721,6 +733,8 @@ jobs:
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "70% complete, this step takes about 5 minutes, be patient."}'
+
+          ignoreSsl: true
   
       - name: Show version information (Rust, cargo, Clang)
         shell: bash
@@ -770,6 +784,8 @@ jobs:
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "85% complete"}'
+
+          ignoreSsl: true
 
       - name: Sign macOS app bundle
         if: env.MACOS_P12_BASE64 != ''
@@ -914,6 +930,8 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "Success"}'
 
+          ignoreSsl: true
+
       - name: failed
         if: failure()
         uses: fjogeleit/http-request-action@v1
@@ -923,6 +941,8 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "Generation failed, try again"}'
 
+          ignoreSsl: true
+
       - name: failed
         if: cancelled()
         uses: fjogeleit/http-request-action@v1
@@ -931,6 +951,8 @@ jobs:
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "Generation cancelled, try again"}'
+
+          ignoreSsl: true
       
       #- name: Publish DMG package
       #  if: env.UPLOAD_ARTIFACT == 'true'

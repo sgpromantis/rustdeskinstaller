@@ -138,6 +138,8 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "5% complete"}'
 
+          ignoreSsl: true
+
       - name: Maximize build space
         run: |
           sudo rm -rf /opt/ghc
@@ -206,6 +208,8 @@ jobs:
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "15% complete"}'
+
+          ignoreSsl: true
 
       - name: Restore bridge files
         if: matrix.job.arch == 'x86_64' || env.UPLOAD_ARTIFACT == 'true'
@@ -428,6 +432,8 @@ jobs:
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "65% complete"}'
+
+          ignoreSsl: true
 
       - uses: rustdesk-org/run-on-arch-action@amd64-support
         name: Build rustdesk
@@ -685,6 +691,8 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "Finished ${{ matrix.job.arch }}"}'
 
+          ignoreSsl: true
+
       - name: failed
         if: failure()
         uses: fjogeleit/http-request-action@v1
@@ -694,6 +702,8 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "Generation failed, try again"}'
 
+          ignoreSsl: true
+
       - name: failed
         if: cancelled()
         uses: fjogeleit/http-request-action@v1
@@ -702,6 +712,8 @@ jobs:
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "Generation cancelled, try again"}'
+
+          ignoreSsl: true
 
   build-appimage:
     name: Build appimage ${{ matrix.job.target }}
@@ -881,6 +893,8 @@ jobs:
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "Success"}'
+
+          ignoreSsl: true
 
       - uses: geekyeggo/delete-artifact@v5
         continue-on-error: true
