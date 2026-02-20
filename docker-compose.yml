@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  rustdesk-generator:
+    build: .
+    container_name: rustdesk-generator
+    restart: unless-stopped
+    environment:
+      - GHUSER=${GHUSER}
+      - GHBEARER=${GHBEARER}
+      - GENURL=https://rustdesk.promantis.de
+      - PROTOCOL=https
+      - REPONAME=${REPONAME:-rustdeskinstaller}
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-change-this-in-production}
+      - ALLOWED_HOSTS=rustdesk.promantis.de
+    volumes:
+      - ./exe:/app/exe
+      - ./png:/app/png
+      - ./media:/app/media
+      - ./db.sqlite3:/app/db.sqlite3
+    networks:
+      - traefik-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rustdesk-gen.rule=Host(`rustdesk.promantis.de`) && (PathPrefix(`/generator`) || PathPrefix(`/updategh`) || PathPrefix(`/api/updategh`) || PathPrefix(`/check_for_file`) || PathPrefix(`/download`) || PathPrefix(`/get_png`) || PathPrefix(`/save_custom_client`) || PathPrefix(`/creategh`) || PathPrefix(`/startgh`))"
+      - "traefik.http.routers.rustdesk-gen.entrypoints=websecure"
+      - "traefik.http.routers.rustdesk-gen.tls=true"
+      - "traefik.http.routers.rustdesk-gen.tls.certresolver=letsencrypt"
+      - "traefik.http.services.rustdesk-gen.loadbalancer.server.port=8000"
+      # Priority to ensure Django routes match before RustDesk server routes
+      - "traefik.http.routers.rustdesk-gen.priority=100"
+
+networks:
+  traefik-network:
+    external: true

@@ -1,0 +1,52 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info
+dist
+build
+.venv
+venv
+env
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+/media
+/staticfiles
+
+# Build artifacts
+exe/*
+png/*
+prepared_images/*
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+test_*.py
+check_status.py
+add_*.ps1
+fix_*.ps1
+cancel_*.py
+
+# Documentation
+*.md
+!DEPLOYMENT.md
+
+# Environment
+.env

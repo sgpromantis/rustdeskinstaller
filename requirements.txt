@@ -2,3 +2,4 @@ django
 requests
 pillow
 python-dotenv
+gunicorn
