@@ -1,9 +1,12 @@
 version: '3.8'
 
+# Development version - builds image locally
+# Use: docker-compose -f docker-compose.dev.yml up -d --build
+
 services:
   rustdesk-generator:
-    image: ghcr.io/sgpromantis/rustdeskinstaller:latest
-    container_name: rustdesk-generator
+    build: .
+    container_name: rustdesk-generator-dev
     restart: unless-stopped
     environment:
       - GHUSER=${GHUSER}
@@ -27,7 +30,6 @@ services:
       - "traefik.http.routers.rustdesk-gen.tls=true"
       - "traefik.http.routers.rustdesk-gen.tls.certresolver=letsencrypt"
       - "traefik.http.services.rustdesk-gen.loadbalancer.server.port=8000"
-      # Priority to ensure Django routes match before RustDesk server routes
       - "traefik.http.routers.rustdesk-gen.priority=100"
 
 networks:

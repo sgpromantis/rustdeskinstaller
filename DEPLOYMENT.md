@@ -4,7 +4,9 @@ This guide will help you deploy the RustDesk Generator Django app alongside your
 
 ## Overview
 
-The setup adds a Django container to handle the web UI and status callbacks from GitHub Actions, while your RustDesk server continues to handle the protocol traffic.
+The setup uses a **pre-built Docker image from GitHub Container Registry (GHCR)**, making deployment fast and easy. The Django app handles the web UI and status callbacks from GitHub Actions, while your RustDesk server continues to handle the protocol traffic.
+
+**Docker Image:** `ghcr.io/sgpromantis/rustdeskinstaller:latest`
 
 ## Architecture
 
@@ -29,44 +31,59 @@ SSH into your server:
 ssh user@rustdesk.promantis.de
 ```
 
-### 2. Clone or Copy the Repository
+### 2. Create Deployment Directory
 
 ```bash
-cd /opt  # or your preferred location
-git clone https://github.com/sgpromantis/rustdeskinstaller.git
-cd rustdeskinstaller
+mkdir -p /opt/rustdeskinstaller
+cd /opt/rustdeskinstaller
 ```
 
-Or if already cloned, pull latest changes:
+### 3. Download Docker Compose File
+
 ```bash
-cd /opt/rustdeskinstaller
-git pull
+# Download the docker-compose.yml
+curl -o docker-compose.yml https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/docker-compose.yml
+
+# Or clone the entire repository if you prefer
+# git clone https://github.com/sgpromantis/rustdeskinstaller.git
+# cd rustdeskinstaller
 ```
 
 ### 3. Configure Environment Variables
 
 Create a `.env` file:
 ```bash
-cp .env.example .env
-nano .env  # or use vim, vi, etc.
-```
-
-Set these values:
-```env
+cat > .env << 'EOF'
 GHUSER=sgpromantis
 GHBEARER=your_github_token_here
 REPONAME=rustdeskinstaller
-SECRET_KEY=generate-a-long-random-string-here
+SECRET_KEY=change-this-to-a-random-string
 GENURL=https://rustdesk.promantis.de
 PROTOCOL=https
+EOF
 ```
 
 Generate a secure SECRET_KEY:
 ```bash
-python3 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 ```
 
-### 4. Adjust Traefik Network (if needed)
+Then edit `.env` and replace the SECRET_KEY value.
+
+### 4. Log in to GitHub Container Registry
+
+The image is public, but if you encounter rate limits:
+```bash
+echo "YOUR_GITHUB_PAT" | docker login ghcr.io -u sgpromantis --password-stdin
+```
+
+### 5. Pull the Latest Image
+
+```bash
+docker pull ghcr.io/sgpromantis/rustdeskinstaller:latest
+```
+
+### 6. Adjust Traefik Network (if needed)
 
 Check your Traefik network name:
 ```bash
@@ -81,7 +98,7 @@ networks:
     name: your-actual-network-name
 ```
 
-### 5. Adjust RustDesk Server Priority (Important!)
+### 7. Adjust RustDesk Server Priority (Important!)
 
 Your existing RustDesk server container might be catching all traffic to rustdesk.promantis.de. 
 
@@ -95,18 +112,29 @@ labels:
   - "traefik.http.routers.rustdesk.priority=50"  # Lower than Django's 100
 ```
 
-### 6. Build and Start the Django App
+### 8. Create Required Directories
 
 ```bash
-docker-compose up -d --build
+mkdir -p exe png media
+chmod 755 exe png media
 ```
+
+### 9. Start the Django App
+
+```bash
+docker-compose up -d
+```
+
+The container will automatically:
+- Pull the latest image from GHCR
+- Run database migrations
+- Start the web server with Gunicorn
 
 Check logs:
 ```bash
 docker-compose logs -f rustdesk-generator
 ```
-
-### 7. Verify Deployment
+### 10. Verify Deployment
 
 Test the endpoints:
 ```bash
@@ -121,19 +149,11 @@ curl -k -X POST https://rustdesk.promantis.de/updategh \
 
 You should get responses (not 404).
 
-### 8. Run Database Migrations
+### 11. Run Database Migrations (if needed)
 
-If needed, run migrations manually:
+Database migrations run automatically on container start, but you can run them manually:
 ```bash
 docker-compose exec rustdesk-generator python manage.py migrate
-```
-
-### 9. Create Directories for Uploads
-
-Ensure directories exist with proper permissions:
-```bash
-mkdir -p exe png media
-chmod 755 exe png media
 ```
 
 ## Traefik Configuration Reference
@@ -170,11 +190,15 @@ The Docker setup uses your existing Traefik TLS/Let's Encrypt configuration. No 
 
 ### Update the App
 
+When a new version is pushed to GHCR:
+
 ```bash
 cd /opt/rustdeskinstaller
-git pull
-docker-compose up -d --build
+docker-compose pull
+docker-compose up -d
 ```
+
+The new image is automatically built and pushed to GHCR whenever changes are pushed to the master branch.
 
 ### View Logs
 
@@ -192,6 +216,27 @@ docker-compose restart rustdesk-generator
 
 ```bash
 cp db.sqlite3 db.sqlite3.backup.$(date +%Y%m%d)
+```
+
+## Docker Image Information
+
+**Registry:** GitHub Container Registry (GHCR)
+**Image:** `ghcr.io/sgpromantis/rustdeskinstaller:latest`
+**Auto-build:** Triggered on every push to master branch
+**Build workflow:** `.github/workflows/docker-build.yml`
+
+### Available Tags
+
+- `latest` - Latest build from master branch
+- `master-<sha>` - Specific commit SHA
+- `master` - Latest master branch build
+
+### Manual Build (for development)
+
+If you want to build the image locally:
+
+```bash
+docker-compose -f docker-compose.dev.yml up -d --build
 ```
 
 ## Integration with Existing Setup
