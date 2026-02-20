@@ -1,0 +1,75 @@
+version: '3.8'
+
+# RustDesk Generator - Production Deployment
+# Image: ghcr.io/sgpromantis/rustdeskinstaller:latest
+# Documentation: See DEPLOYMENT.md for full setup guide
+
+services:
+  rustdesk-generator:
+    image: ghcr.io/sgpromantis/rustdeskinstaller:latest
+    container_name: rustdesk-generator
+    restart: unless-stopped
+    
+    environment:
+      # GitHub Configuration - Fill these in your .env file
+      - GHUSER=${GHUSER}
+      - GHBEARER=${GHBEARER}
+      - REPONAME=${REPONAME:-rustdeskinstaller}
+      
+      # Django Configuration
+      - SECRET_KEY=${SECRET_KEY}
+      - GENURL=https://rustdesk.promantis.de
+      - PROTOCOL=https
+      - ALLOWED_HOSTS=rustdesk.promantis.de
+    
+    volumes:
+      # Persistent storage for generated files and database
+      - ./exe:/app/exe          # Generated executables
+      - ./png:/app/png          # Logo/icon files
+      - ./media:/app/media      # Other media uploads
+      - ./db.sqlite3:/app/db.sqlite3  # SQLite database
+    
+    networks:
+      - traefik-network
+    
+    labels:
+      # Traefik configuration
+      - "traefik.enable=true"
+      
+      # Router configuration - matches specific paths for Django app
+      - "traefik.http.routers.rustdesk-gen.rule=Host(`rustdesk.promantis.de`) && (PathPrefix(`/generator`) || PathPrefix(`/updategh`) || PathPrefix(`/api/updategh`) || PathPrefix(`/check_for_file`) || PathPrefix(`/download`) || PathPrefix(`/get_png`) || PathPrefix(`/save_custom_client`) || PathPrefix(`/creategh`) || PathPrefix(`/startgh`))"
+      
+      # HTTPS configuration
+      - "traefik.http.routers.rustdesk-gen.entrypoints=websecure"
+      - "traefik.http.routers.rustdesk-gen.tls=true"
+      - "traefik.http.routers.rustdesk-gen.tls.certresolver=letsencrypt"
+      
+      # Service configuration
+      - "traefik.http.services.rustdesk-gen.loadbalancer.server.port=8000"
+      
+      # Priority: Higher than RustDesk server to ensure Django paths match first
+      - "traefik.http.routers.rustdesk-gen.priority=100"
+
+networks:
+  traefik-network:
+    external: true
+
+# DEPLOYMENT INSTRUCTIONS:
+# 
+# 1. Create directories:
+#    mkdir -p exe png media && chmod 755 exe png media
+#
+# 2. Create .env file with your credentials:
+#    GHUSER=sgpromantis
+#    GHBEARER=your_github_token_here
+#    REPONAME=rustdeskinstaller
+#    SECRET_KEY=generate-random-string-here
+#
+# 3. Start the service:
+#    docker-compose up -d
+#
+# 4. View logs:
+#    docker-compose logs -f rustdesk-generator
+#
+# 5. Update to latest version:
+#    docker-compose pull && docker-compose up -d
