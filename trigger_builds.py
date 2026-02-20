@@ -75,7 +75,8 @@ def create_extras():
     """Create the extras configuration JSON"""
     extras = {
         'version': VERSION,
-        'rdgen': 'false',
+        'rdgen': 'true',  # Set to true to avoid callback URL issues
+        'genurl': 'https://github.com',  # Dummy URL to prevent errors
         'compname': COMPANY_NAME,
         'slogan': 'professionell. progressiv. proaktiv.',  # Promantis tagline
         'delayFix': 'false',
@@ -84,8 +85,8 @@ def create_extras():
         'hidecm': 'false',
         'statussort': 'false',
         'removeNewVersionNotif': 'false',
-        'urlLink': 'https://rustdesk.com',
-        'downloadLink': 'https://rustdesk.com/download'
+        'urlLink': 'https://promantis.com',
+        'downloadLink': 'https://promantis.com'
     }
     
     return json.dumps(extras)
