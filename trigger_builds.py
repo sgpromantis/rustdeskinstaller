@@ -20,7 +20,7 @@ GITHUB_TOKEN = os.environ.get("GHBEARER", "")  # Your GitHub Personal Access Tok
 REPO_NAME = os.environ.get("REPONAME", "rustdeskinstaller")  # Your repo name
 
 # RustDesk Configuration
-RUSTDESK_SERVER = "212.132.114.192"
+RUSTDESK_SERVER = "rustdesk.promantis.de"
 RUSTDESK_KEY = "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk="
 API_SERVER = f"{RUSTDESK_SERVER}:21114"
 
@@ -86,7 +86,7 @@ def create_extras():
     extras = {
         'version': VERSION,
         'rdgen': 'true',  # Set to true to avoid callback URL issues
-        'genurl': 'https://github.com',  # Dummy URL to prevent errors
+        'genurl': 'https://github.com/sgpromantis/rustdeskinstaller',  # Valid URL for status callbacks
         'compname': COMPANY_NAME,
         'slogan': 'professionell. progressiv. proaktiv.',  # Promantis tagline
         'delayFix': 'false',
@@ -95,8 +95,8 @@ def create_extras():
         'hidecm': 'false',
         'statussort': 'false',
         'removeNewVersionNotif': 'false',
-        'urlLink': 'https://promantis.com',
-        'downloadLink': 'https://promantis.com'
+        'urlLink': 'https://promantis.de',
+        'downloadLink': 'https://supporttool.promantis.de'
     }
     
     return json.dumps(extras)
