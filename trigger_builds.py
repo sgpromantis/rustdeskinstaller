@@ -25,10 +25,17 @@ RUSTDESK_KEY = "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk="
 API_SERVER = f"{RUSTDESK_SERVER}:21114"
 
 # Build Configuration
-APP_NAME = "RustDesk"
-FILE_NAME = "rustdesk"
-COMPANY_NAME = "Purslane Ltd"
+APP_NAME = "Promantis Remote"
+FILE_NAME = "promantis_remote"
+COMPANY_NAME = "Promantis"
 VERSION = "1.3.3"  # RustDesk version to build (1.3.3, 1.3.6, 1.3.7, 1.4.0, 1.4.1, 1.4.2, 1.4.3, or 'master')
+
+# Logo Configuration
+# Option 1: Use a URL to your logo (recommended for GitHub Actions)
+LOGO_URL = ""  # Set to your logo URL, or leave empty for no logo
+# Option 2: Use GitHub raw URL after committing logo to repo
+# Example: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/prepared_images/promantis_logo.png"
+ICON_URL = ""  # Set to your icon URL, or leave empty for no icon
 
 # Build UUID (unique identifier for this build)
 BUILD_UUID = str(uuid.uuid4())
@@ -70,7 +77,7 @@ def create_extras():
         'version': VERSION,
         'rdgen': 'false',
         'compname': COMPANY_NAME,
-        'slogan': f"Developed By {APP_NAME}",
+        'slogan': 'professionell. progressiv. proaktiv.',  # Promantis tagline
         'delayFix': 'false',
         'cycleMonitor': 'false',
         'xOffline': 'false',
@@ -87,19 +94,21 @@ def create_extras():
 def trigger_workflow(platform):
     """Trigger GitHub Actions workflow for a specific platform"""
     
-    workflow_files = {
-        'windows': 'generator-windows.yml',
-        'linux': 'generator-linux.yml',
-        'macos': 'generator-macos.yml',
-        'macos-x86': 'generator-macos-x86.yml'
+    # Use workflow IDs (more reliable than filenames)
+    # To get IDs: gh api /repos/{owner}/{repo}/actions/workflows
+    workflow_ids = {
+        'windows': '236678191',  # generator-windows.yml
+        'linux': '236678174',    # generator-linux.yml
+        'macos': '236678184',    # generator-macos.yml
+        'macos-x86': '236678180' # generator-macos-x86.yml
     }
     
-    if platform not in workflow_files:
+    if platform not in workflow_ids:
         print(f"❌ Unknown platform: {platform}")
         return False
     
-    workflow_file = workflow_files[platform]
-    url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{REPO_NAME}/actions/workflows/{workflow_file}/dispatches"
+    workflow_id = workflow_ids[platform]
+    url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{REPO_NAME}/actions/workflows/{workflow_id}/dispatches"
     
     # Prepare workflow inputs
     custom_config = create_custom_config()
@@ -113,8 +122,8 @@ def trigger_workflow(platform):
             "apiServer": API_SERVER,
             "custom": custom_config,
             "uuid": BUILD_UUID,
-            "iconlink": "false",
-            "logolink": "false",
+            "iconlink": ICON_URL if ICON_URL else "false",
+            "logolink": LOGO_URL if LOGO_URL else "false",
             "appname": APP_NAME,
             "filename": FILE_NAME,
             "extras": extras
@@ -130,7 +139,7 @@ def trigger_workflow(platform):
     
     print(f"\n🚀 Triggering {platform.upper()} build...")
     print(f"   Repository: {GITHUB_USERNAME}/{REPO_NAME}")
-    print(f"   Workflow: {workflow_file}")
+    print(f"   Workflow ID: {workflow_id}")
     print(f"   Server: {RUSTDESK_SERVER}")
     print(f"   Version: {VERSION}")
     
