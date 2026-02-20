@@ -8,10 +8,22 @@ Write-Host "============================================================" -Foreg
 # Configuration
 $IMAGE_NAME = "ghcr.io/sgpromantis/rustdeskinstaller"
 $TAG_LATEST = "${IMAGE_NAME}:latest"
+$GHCR_TOKEN = $env:GHCR_TOKEN
+
+if (-not $GHCR_TOKEN) {
+    Write-Host "❌ Error: GHCR_TOKEN environment variable not set" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Please set your GitHub token:" -ForegroundColor Yellow
+    Write-Host '   $env:GHCR_TOKEN = "your_github_token_here"' -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "Or pass it inline:" -ForegroundColor Yellow
+    Write-Host '   $env:GHCR_TOKEN = "ghp_xxx..."; .\build-and-push.ps1' -ForegroundColor Gray
+    exit 1
+}
 
 # Login to GHCR
 Write-Host "`n[1/3] Logging in to GitHub Container Registry..." -ForegroundColor Yellow
-echo "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" | docker login ghcr.io -u sgpromantis --password-stdin
+echo $GHCR_TOKEN | docker login ghcr.io -u sgpromantis --password-stdin
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to login to GHCR" -ForegroundColor Red
