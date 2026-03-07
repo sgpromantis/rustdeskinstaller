@@ -53,53 +53,7 @@ on:
         required: true
         default: '{}'
         type: string
-  workflow_call:
-    inputs:
-      server:
-        description: 'Rendezvous Server'
-        required: true
-        type: string
-      key:
-        description: 'Public Key'
-        required: true
-        type: string
-      apiServer:
-        description: 'API Server'
-        required: true
-        type: string
-      custom:
-        description: "Custom JSON"
-        required: true
-        type: string
-      uuid:
-        description: "uuid of request"
-        required: true
-        type: string
-      iconlink:
-        description: "icon link"
-        required: false
-        default: 'false'
-        type: string
-      logolink:
-        description: "logo link"
-        required: false
-        default: 'false'
-        type: string
-      appname:
-        description: "app name"
-        required: true
-        default: 'rustdesk'
-        type: string
-      filename:
-        description: "Filename"
-        required: true
-        default: 'rustdesk'
-        type: string
-      extras:
-        description: "extra inputs in json"
-        required: true
-        default: '{}'
-        type: string
+
 
 env:
   SCITER_RUST_VERSION: "1.75" # https://github.com/rustdesk/rustdesk/discussions/7503, also 1.78 has ABI change which causes our sciter version not working, https://blog.rust-lang.org/2024/03/30/i128-layout-update.html
