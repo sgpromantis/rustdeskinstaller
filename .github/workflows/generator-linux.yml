@@ -53,6 +53,47 @@ on:
         required: true
         default: '{}'
         type: string
+  workflow_call:
+    inputs:
+      server:
+        required: true
+        type: string
+      key:
+        required: true
+        type: string
+      apiServer:
+        required: true
+        type: string
+      custom:
+        required: true
+        type: string
+      uuid:
+        required: true
+        type: string
+      iconlink:
+        required: false
+        default: 'false'
+        type: string
+      logolink:
+        required: false
+        default: 'false'
+        type: string
+      appname:
+        required: true
+        default: 'rustdesk'
+        type: string
+      filename:
+        required: true
+        default: 'rustdesk'
+        type: string
+      extras:
+        required: true
+        default: '{}'
+        type: string
+      artifact-prefix:
+        required: false
+        default: ''
+        type: string
 
 env:
   SCITER_RUST_VERSION: "1.75" # https://github.com/rustdesk/rustdesk/discussions/7503, also 1.78 has ABI change which causes our sciter version not working, https://blog.rust-lang.org/2024/03/30/i128-layout-update.html
@@ -85,6 +126,7 @@ jobs:
     uses: ./.github/workflows/bridge.yml
     with:
       version: ${{ fromJson(inputs.extras).version }}
+      artifact-prefix: ${{ inputs.artifact-prefix }}
 
   build-rustdesk-linux:
     needs: [generate-bridge-linux]
@@ -215,7 +257,7 @@ jobs:
         if: matrix.job.arch == 'x86_64' || env.UPLOAD_ARTIFACT == 'true'
         uses: actions/download-artifact@master
         with:
-          name: bridge-artifact
+          name: ${{ inputs.artifact-prefix }}bridge-artifact
           path: ./
 
       - name: Setup vcpkg with Github Actions binary cache
@@ -421,7 +463,7 @@ jobs:
         if: matrix.job.arch == 'x86_64' || env.UPLOAD_ARTIFACT == 'true'
         uses: actions/download-artifact@master
         with:
-          name: bridge-artifact
+          name: ${{ inputs.artifact-prefix }}bridge-artifact
           path: ./
 
       - name: Report Status

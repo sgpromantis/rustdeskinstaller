@@ -6,6 +6,10 @@ on:
         upload-artifact:
           type: boolean
           default: true
+        artifact-prefix:
+          description: 'Prefix for artifact names to avoid collisions'
+          type: string
+          default: ''
         target:
             description: 'Target'
             required: true
@@ -55,6 +59,6 @@ jobs:
         uses: actions/upload-artifact@master
         if: ${{ inputs.upload-artifact }}
         with:
-            name: topmostwindow-artifacts
+            name: ${{ inputs.artifact-prefix }}topmostwindow-artifacts
             path: |
               ./${{ env.build_output_dir }}/WindowInjection.dll

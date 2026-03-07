@@ -53,6 +53,47 @@ on:
         required: true
         default: '{}'
         type: string
+  workflow_call:
+    inputs:
+      server:
+        required: true
+        type: string
+      key:
+        required: true
+        type: string
+      apiServer:
+        required: true
+        type: string
+      custom:
+        required: true
+        type: string
+      uuid:
+        required: true
+        type: string
+      iconlink:
+        required: false
+        default: 'false'
+        type: string
+      logolink:
+        required: false
+        default: 'false'
+        type: string
+      appname:
+        required: true
+        default: 'rustdesk'
+        type: string
+      filename:
+        required: true
+        default: 'rustdesk'
+        type: string
+      extras:
+        required: true
+        default: '{}'
+        type: string
+      artifact-prefix:
+        required: false
+        default: ''
+        type: string
 
 
 env:
@@ -86,11 +127,13 @@ jobs:
     uses: ./.github/workflows/bridge.yml
     with:
       version: ${{ fromJson(inputs.extras).version }}
+      artifact-prefix: ${{ inputs.artifact-prefix }}
 
   build-RustDeskTempTopMostWindow:
     uses: ./.github/workflows/third-party-RustDeskTempTopMostWindow.yml
     with:
       upload-artifact: true
+      artifact-prefix: ${{ inputs.artifact-prefix }}
       target: windows-2022
       configuration: Release
       platform: x64
@@ -162,7 +205,7 @@ jobs:
       - name: Restore bridge files
         uses: actions/download-artifact@master
         with:
-          name: bridge-artifact
+          name: ${{ inputs.artifact-prefix }}bridge-artifact
           path: ./
 
       - name: Install ImageMagick on Windows
@@ -677,7 +720,7 @@ jobs:
         uses: actions/download-artifact@master
         if: env.UPLOAD_ARTIFACT == 'true'
         with:
-          name: topmostwindow-artifacts
+          name: ${{ inputs.artifact-prefix }}topmostwindow-artifacts
           path: "./rustdesk"
 
       - name: Report Status

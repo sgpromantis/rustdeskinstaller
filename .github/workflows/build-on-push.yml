@@ -4,12 +4,13 @@ on:
   push:
     branches: [master]
 
-permissions:
-  actions: write
-
 jobs:
-  trigger-builds:
+  prepare:
     runs-on: ubuntu-latest
+    outputs:
+      custom: ${{ steps.config.outputs.custom }}
+      extras: ${{ steps.config.outputs.extras }}
+      uuid: ${{ steps.config.outputs.uuid }}
     steps:
       - name: Generate build configuration
         id: config
@@ -44,71 +45,53 @@ jobs:
           echo "extras=$EXTRAS" >> $GITHUB_OUTPUT
           echo "uuid=$UUID" >> $GITHUB_OUTPUT
 
-      - name: Trigger Windows build
-        run: |
-          curl -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ github.token }}" \
-            https://api.github.com/repos/${{ github.repository }}/actions/workflows/generator-windows.yml/dispatches \
-            -d '{
-              "ref": "master",
-              "inputs": {
-                "server": "rustdesk.promantis.de",
-                "key": "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk=",
-                "apiServer": "https://rustdesk.promantis.de",
-                "custom": "${{ steps.config.outputs.custom }}",
-                "uuid": "${{ steps.config.outputs.uuid }}",
-                "iconlink": "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png",
-                "logolink": "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png",
-                "appname": "Promantis Remote",
-                "filename": "promantis_remote",
-                "extras": ${{ toJson(steps.config.outputs.extras) }}
-              }
-            }'
-          echo "Windows build dispatched"
+  build-windows:
+    needs: prepare
+    uses: ./.github/workflows/generator-windows.yml
+    with:
+      server: "rustdesk.promantis.de"
+      key: "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk="
+      apiServer: "https://rustdesk.promantis.de"
+      custom: ${{ needs.prepare.outputs.custom }}
+      uuid: ${{ needs.prepare.outputs.uuid }}
+      iconlink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
+      logolink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
+      appname: "Promantis Remote"
+      filename: "promantis_remote"
+      extras: ${{ needs.prepare.outputs.extras }}
+      artifact-prefix: "win-"
+    secrets: inherit
 
-      - name: Trigger Linux build
-        run: |
-          curl -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ github.token }}" \
-            https://api.github.com/repos/${{ github.repository }}/actions/workflows/generator-linux.yml/dispatches \
-            -d '{
-              "ref": "master",
-              "inputs": {
-                "server": "rustdesk.promantis.de",
-                "key": "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk=",
-                "apiServer": "https://rustdesk.promantis.de",
-                "custom": "${{ steps.config.outputs.custom }}",
-                "uuid": "${{ steps.config.outputs.uuid }}",
-                "iconlink": "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png",
-                "logolink": "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png",
-                "appname": "Promantis Remote",
-                "filename": "promantis_remote",
-                "extras": ${{ toJson(steps.config.outputs.extras) }}
-              }
-            }'
-          echo "Linux build dispatched"
+  build-linux:
+    needs: prepare
+    uses: ./.github/workflows/generator-linux.yml
+    with:
+      server: "rustdesk.promantis.de"
+      key: "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk="
+      apiServer: "https://rustdesk.promantis.de"
+      custom: ${{ needs.prepare.outputs.custom }}
+      uuid: ${{ needs.prepare.outputs.uuid }}
+      iconlink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
+      logolink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
+      appname: "Promantis Remote"
+      filename: "promantis_remote"
+      extras: ${{ needs.prepare.outputs.extras }}
+      artifact-prefix: "linux-"
+    secrets: inherit
 
-      - name: Trigger macOS build
-        run: |
-          curl -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ github.token }}" \
-            https://api.github.com/repos/${{ github.repository }}/actions/workflows/generator-macos.yml/dispatches \
-            -d '{
-              "ref": "master",
-              "inputs": {
-                "server": "rustdesk.promantis.de",
-                "key": "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk=",
-                "apiServer": "https://rustdesk.promantis.de",
-                "custom": "${{ steps.config.outputs.custom }}",
-                "uuid": "${{ steps.config.outputs.uuid }}",
-                "iconlink": "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png",
-                "logolink": "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png",
-                "appname": "Promantis Remote",
-                "filename": "promantis_remote",
-                "extras": ${{ toJson(steps.config.outputs.extras) }}
-              }
-            }'
-          echo "macOS build dispatched"
+  build-macos:
+    needs: prepare
+    uses: ./.github/workflows/generator-macos.yml
+    with:
+      server: "rustdesk.promantis.de"
+      key: "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk="
+      apiServer: "https://rustdesk.promantis.de"
+      custom: ${{ needs.prepare.outputs.custom }}
+      uuid: ${{ needs.prepare.outputs.uuid }}
+      iconlink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
+      logolink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
+      appname: "Promantis Remote"
+      filename: "promantis_remote"
+      extras: ${{ needs.prepare.outputs.extras }}
+      artifact-prefix: "macos-"
+    secrets: inherit
