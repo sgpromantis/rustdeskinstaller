@@ -254,7 +254,7 @@ jobs:
           mv ./res/icon.ico ./res/icon.ico.bak
           mv ./res/icon.png ./res/icon.png.bak
           mv ./res/tray-icon.ico ./res/tray-icon.ico.bak
-          wget -O ./res/icon.png ${{ fromJson(inputs.iconlink).url }}/get_png?filename=${{ fromJson(inputs.iconlink).file }}"&"uuid=${{ fromJson(inputs.iconlink).uuid }}
+          wget -O ./res/icon.png "${{ inputs.iconlink }}"
           mv ./res/32x32.png ./res/32x32.png.bak
           mv ./res/64x64.png ./res/64x64.png.bak
           mv ./res/128x128.png ./res/128x128.png.bak
@@ -582,7 +582,7 @@ jobs:
             mkdir -p flutter/tmpdeb/usr/share/rustdesk
             cp ./custom.txt ./flutter/tmpdeb/usr/share/rustdesk/custom.txt
             if [[ "${{ inputs.logolink }}" != "false" ]]; then
-              wget -O ./flutter/assets/logo.png ${{ fromJson(inputs.logolink).url }}/get_png?filename=${{ fromJson(inputs.logolink).file }}"&"uuid=${{ fromJson(inputs.logolink).uuid }}
+              wget -O ./flutter/assets/logo.png "${{ inputs.logolink }}"
             fi
             if [[ "${{ inputs.iconlink }}" != "false" ]]; then
               mv ./flutter/assets/icon.svg ./flutter/assets/icon.svg.bak
