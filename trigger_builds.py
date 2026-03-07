@@ -33,7 +33,7 @@ PERMANENT_PASSWORD = "T3OWMFg0lxCkvXdo5nu8_!23"  # Master password baked into al
 APP_NAME = "Promantis Remote"
 FILE_NAME = "promantis_remote"
 COMPANY_NAME = "Promantis"
-VERSION = "1.3.3"  # RustDesk version to build (1.3.3, 1.3.6, 1.3.7, 1.4.0, 1.4.1, 1.4.2, 1.4.3, or 'master')
+VERSION = "1.4.6"  # RustDesk version to build (latest: 1.4.6)
 
 # Logo Configuration
 # Option 1: Use a URL to your logo (recommended for GitHub Actions)

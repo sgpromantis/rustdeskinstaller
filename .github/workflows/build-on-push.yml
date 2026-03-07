@@ -1,0 +1,94 @@
+name: Build Promantis Remote on Push
+run-name: Build Promantis Remote (push to master)
+on:
+  push:
+    branches: [master]
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      custom: ${{ steps.config.outputs.custom }}
+      extras: ${{ steps.config.outputs.extras }}
+      uuid: ${{ steps.config.outputs.uuid }}
+    steps:
+      - name: Generate build configuration
+        id: config
+        run: |
+          CUSTOM=$(python3 -c "
+          import json, base64
+          custom = {
+              'app-name': 'Promantis Remote',
+              'enable-lan-discovery': 'Y',
+              'direct-server': 'N',
+              'allow-auto-disconnect': 'Y',
+              'approve-mode': 'password',
+              'default-settings': {
+                  'access-mode': 'full',
+                  'enable-keyboard': 'Y',
+                  'enable-clipboard': 'Y',
+                  'enable-file-transfer': 'Y',
+                  'enable-audio': 'Y',
+                  'enable-tunnel': 'Y',
+                  'enable-remote-restart': 'Y',
+                  'enable-record-session': 'N',
+                  'enable-block-input': 'N',
+                  'allow-remote-config-modification': 'Y',
+              },
+              'password': '${{ secrets.PERMANENT_PASSWORD }}'
+          }
+          print(base64.b64encode(json.dumps(custom).encode()).decode())
+          ")
+          UUID=$(python3 -c "import uuid; print(uuid.uuid4())")
+          EXTRAS='{"version":"1.4.6","rdgen":"true","compname":"Promantis","slogan":"professionell. progressiv. proaktiv.","delayFix":"false","cycleMonitor":"false","xOffline":"false","hidecm":"false","statussort":"false","removeNewVersionNotif":"false","urlLink":"https://promantis.de","downloadLink":"https://supporttool.promantis.de"}'
+          echo "custom=$CUSTOM" >> $GITHUB_OUTPUT
+          echo "extras=$EXTRAS" >> $GITHUB_OUTPUT
+          echo "uuid=$UUID" >> $GITHUB_OUTPUT
+
+  build-windows:
+    needs: prepare
+    uses: ./.github/workflows/generator-windows.yml
+    with:
+      server: "rustdesk.promantis.de"
+      key: "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk="
+      apiServer: "https://rustdesk.promantis.de"
+      custom: ${{ needs.prepare.outputs.custom }}
+      uuid: ${{ needs.prepare.outputs.uuid }}
+      iconlink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
+      logolink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
+      appname: "Promantis Remote"
+      filename: "promantis_remote"
+      extras: ${{ needs.prepare.outputs.extras }}
+    secrets: inherit
+
+  build-linux:
+    needs: prepare
+    uses: ./.github/workflows/generator-linux.yml
+    with:
+      server: "rustdesk.promantis.de"
+      key: "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk="
+      apiServer: "https://rustdesk.promantis.de"
+      custom: ${{ needs.prepare.outputs.custom }}
+      uuid: ${{ needs.prepare.outputs.uuid }}
+      iconlink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
+      logolink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
+      appname: "Promantis Remote"
+      filename: "promantis_remote"
+      extras: ${{ needs.prepare.outputs.extras }}
+    secrets: inherit
+
+  build-macos:
+    needs: prepare
+    uses: ./.github/workflows/generator-macos.yml
+    with:
+      server: "rustdesk.promantis.de"
+      key: "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk="
+      apiServer: "https://rustdesk.promantis.de"
+      custom: ${{ needs.prepare.outputs.custom }}
+      uuid: ${{ needs.prepare.outputs.uuid }}
+      iconlink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
+      logolink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
+      appname: "Promantis Remote"
+      filename: "promantis_remote"
+      extras: ${{ needs.prepare.outputs.extras }}
+    secrets: inherit
