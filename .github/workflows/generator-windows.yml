@@ -268,7 +268,9 @@ jobs:
         shell: bash
         run: |
           sed -i -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./flutter/lib/desktop/pages/desktop_setting_page.dart
-          sed -i -e 's|Purslane Ltd.|${{ fromJson(inputs.extras).compname }}|' ./res/setup.nsi
+          if [ -f "./res/setup.nsi" ]; then
+            sed -i -e 's|Purslane Ltd.|${{ fromJson(inputs.extras).compname }}|' ./res/setup.nsi
+          fi
           sed -i -e 's|PURSLANE|${{ fromJson(inputs.extras).compname }}|' ./res/msi/preprocess.py
           sed -i -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./res/msi/preprocess.py
           sed -i -e 's|"Copyright \u00A9 2025 Purslane Ltd. All rights reserved."|"Copyright \u00A9 2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved."|' ./flutter/windows/runner/Runner.rc
@@ -304,9 +306,7 @@ jobs:
           fi
             
           if [ -f "./res/setup.nsi" ]; then
-            #sed -i -e "s|https://rustdesk.com/|${{ fromJson(inputs.extras).urlLink }}|" ./res/setup.nsi
-          else
-            echo "Warning: ./res/setup.nsi not found, skipping URL replacement for this file"
+            sed -i -e "s|https://rustdesk.com/|${{ fromJson(inputs.extras).urlLink }}|" ./res/setup.nsi
           fi
       
       - name: change download link to custom
