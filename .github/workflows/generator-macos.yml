@@ -383,38 +383,41 @@ jobs:
           [ -f "./flutter/assets/icon.svg" ] && mv ./flutter/assets/icon.svg ./flutter/assets/icon.svg.bak
           [ -f "./rustdesk/data/flutter_assets/assets/icon.svg" ] && mv ./rustdesk/data/flutter_assets/assets/icon.svg ./rustdesk/data/flutter_assets/assets/icon.svg.bak
             
+          # Force a square canvas so iconutil never rejects mismatched dimensions
+          magick ./res/icon.png -resize 1024x1024 -gravity center -background none -extent 1024x1024 ./res/icon_square.png
+
           # Create standard app icons
-          magick ./res/icon.png -resize 32x32 ./res/32x32.png
-          magick ./res/icon.png -resize 64x64 ./res/64x64.png
-          magick ./res/icon.png -resize 128x128 ./res/128x128.png
+          magick ./res/icon_square.png -resize 32x32 ./res/32x32.png
+          magick ./res/icon_square.png -resize 64x64 ./res/64x64.png
+          magick ./res/icon_square.png -resize 128x128 ./res/128x128.png
           
           # Copy icon to Flutter assets
           cp ./res/icon.png ./flutter/assets/icon.png
           cp ./res/icon.png ./rustdesk/data/flutter_assets/assets/icon.png
           
           # Convert PNG to SVG using potrace
-          magick ./res/icon.png -flatten ./temp_icon.pbm
+          magick ./res/icon_square.png -flatten ./temp_icon.pbm
           potrace --svg -o ./flutter/assets/icon.svg ./temp_icon.pbm
           cp ./flutter/assets/icon.svg ./rustdesk/data/flutter_assets/assets/icon.svg
           rm ./temp_icon.pbm
           
-          # Create macOS app icons
-          magick ./res/icon.png -resize 16x16 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_16.png"
-          magick ./res/icon.png -resize 32x32 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png"
-          magick ./res/icon.png -resize 64x64 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_64.png"
-          magick ./res/icon.png -resize 128x128 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_128.png"
-          magick ./res/icon.png -resize 256x256 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png"
-          magick ./res/icon.png -resize 512x512 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png"
-          magick ./res/icon.png -resize 1024x1024 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png"
+          # Create macOS app icons (must be exact dimensions for iconutil)
+          magick ./res/icon_square.png -resize 16x16 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_16.png"
+          magick ./res/icon_square.png -resize 32x32 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png"
+          magick ./res/icon_square.png -resize 64x64 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_64.png"
+          magick ./res/icon_square.png -resize 128x128 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_128.png"
+          magick ./res/icon_square.png -resize 256x256 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png"
+          magick ./res/icon_square.png -resize 512x512 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png"
+          magick ./res/icon_square.png -resize 1024x1024 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png"
 
           # Create macOS specific icons
-          magick ./res/icon.png -resize 128x128 ./res/mac-icon.png
+          magick ./res/icon_square.png -resize 128x128 ./res/mac-icon.png
           
           # Create dark mode tray icon (optimized for macOS menu bar)
-          magick ./res/icon.png -resize 22x22 -colorspace gray -alpha set -background none -channel A -evaluate set 100% ./res/mac-tray-dark-x2.png
+          magick ./res/icon_square.png -resize 22x22 -colorspace gray -alpha set -background none -channel A -evaluate set 100% ./res/mac-tray-dark-x2.png
           
           # Create light mode tray icon (optimized for macOS menu bar)
-          magick ./res/icon.png -resize 22x22 -negate -colorspace gray -alpha set -background none -channel A -evaluate set 100% ./res/mac-tray-light-x2.png
+          magick ./res/icon_square.png -resize 22x22 -negate -colorspace gray -alpha set -background none -channel A -evaluate set 100% ./res/mac-tray-light-x2.png
 
           # Create AppIcon.icns (macOS native icon format)
           mkdir -p ./iconset.iconset
