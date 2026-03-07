@@ -1,5 +1,8 @@
 name: Custom Linux Client Generator
 run-name: Custom Linux Client Generator
+concurrency:
+  group: generator-linux-${{ github.ref }}
+  cancel-in-progress: true
 on: 
   workflow_dispatch:
     inputs:

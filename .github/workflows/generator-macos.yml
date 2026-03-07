@@ -1,5 +1,8 @@
 name: Custom macOS Client Generator
 run-name: Custom macOS Client Generator
+concurrency:
+  group: generator-macos-${{ github.ref }}
+  cancel-in-progress: true
 on: 
   workflow_dispatch:
     inputs:

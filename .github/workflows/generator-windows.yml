@@ -1,5 +1,8 @@
 name: Custom Windows Client Generator
 run-name: Custom Windows Client Generator
+concurrency:
+  group: generator-windows-${{ github.ref }}
+  cancel-in-progress: true
 on: 
   workflow_dispatch:
     inputs:
