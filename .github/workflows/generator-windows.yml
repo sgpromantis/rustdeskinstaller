@@ -118,10 +118,9 @@ env:
   VERSION: "${{ fromJson(inputs.extras).version }}"
   NDK_VERSION: "r27c"
   #signing keys env variable checks
-  ANDROID_SIGNING_KEY: "${{ secrets.ANDROID_SIGNING_KEY }}"
-  MACOS_P12_BASE64: "${{ secrets.MACOS_P12_BASE64 }}"
+  WINDOWS_PFX_BASE64: "${{ secrets.WINDOWS_PFX_BASE64 }}"
+  WINDOWS_PFX_PASSWORD: "${{ secrets.WINDOWS_PFX_PASSWORD }}"
   UPLOAD_ARTIFACT: 'true'
-  SIGN_BASE_URL: "${{ secrets.SIGN_BASE_URL }}"
   STATUS_URL: "${{ secrets.GENURL }}/updategh"
 
 
@@ -737,34 +736,24 @@ jobs:
 
           ignoreSsl: true
       
-      - name: zip dlls
+      - name: Sign DLLs and runtime files
+        if: env.WINDOWS_PFX_BASE64 != ''
         continue-on-error: true
         shell: pwsh
         run: |
-          Compress-Archive -Path ./rustdesk/*.dll, ./rustdesk/*.exe -DestinationPath ./rustdesk/unsigned_files.zip -CompressionLevel Fastest
-
-      - name: sign dlls
-        continue-on-error: true
-        shell: bash
-        run: |
-          if [ ! -z "${{ secrets.SIGN_BASE_URL }}" ] && [ ! -z "${{ secrets.SIGN_API_KEY }}" ]; then
-            curl -X POST -F "file=@./rustdesk/unsigned_files.zip" \
-              -H "X-API-KEY: ${{ secrets.SIGN_API_KEY }}" \
-              -m 900 \
-              "${{ secrets.SIGN_BASE_URL }}/sign/" -o ./rustdesk/signed_files.zip
-          else
-            echo "Signing skipped - signing URL or API key not configured"
-            cp ./rustdesk/unsigned_files.zip ./rustdesk/signed_files.zip
-          fi
-
-      - name: unzip dlls
-        continue-on-error: true
-        shell: pwsh
-        run: |
-          Expand-Archive -Path ./rustdesk/signed_files.zip -DestinationPath ./rustdesk/ -Force
-          Remove-Item ./rustdesk/unsigned_files.zip
-          Remove-Item ./rustdesk/signed_files.zip
-          
+          $pfxBytes = [Convert]::FromBase64String("${{ secrets.WINDOWS_PFX_BASE64 }}")
+          [IO.File]::WriteAllBytes("$PWD/certificate.pfx", $pfxBytes)
+          $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe |
+                      Where-Object { $_.FullName -match "x64" } |
+                      Select-Object -First 1 -ExpandProperty FullName
+          if (-not $signtool) { Write-Host "signtool not found, skipping"; Remove-Item certificate.pfx; exit 0 }
+          Write-Host "Using signtool: $signtool"
+          $files = Get-ChildItem ./rustdesk -Include @("*.dll","*.exe") -File
+          foreach ($f in $files) {
+            & $signtool sign /fd SHA256 /f certificate.pfx /p "${{ secrets.WINDOWS_PFX_PASSWORD }}" `
+              /tr http://timestamp.digicert.com /td SHA256 $f.FullName
+          }
+          Remove-Item certificate.pfx
 
       - name: Create custom.txt file
         shell: bash
@@ -851,34 +840,24 @@ jobs:
 
           ignoreSsl: true
 
-      - name: zip exe and msi
+      - name: Sign EXE and MSI
+        if: env.WINDOWS_PFX_BASE64 != ''
         continue-on-error: true
         shell: pwsh
         run: |
-          Compress-Archive -Path ./SignOutput/*.exe, ./SignOutput/*.msi -DestinationPath ./SignOutput/unsigned_files.zip -CompressionLevel Fastest
-
-      
-      - name: sign exe and msi
-        continue-on-error: true
-        shell: bash
-        run: |
-          if [ ! -z "${{ secrets.SIGN_BASE_URL }}" ] && [ ! -z "${{ secrets.SIGN_API_KEY }}" ]; then
-            curl -X POST -F "file=@./SignOutput/unsigned_files.zip" \
-              -H "X-API-KEY: ${{ secrets.SIGN_API_KEY }}" \
-              -m 900 \
-              "${{ secrets.SIGN_BASE_URL }}/sign/" -o ./SignOutput/signed_files.zip
-          else
-            echo "Signing skipped - signing URL or API key not configured"
-            cp ./SignOutput/unsigned_files.zip ./SignOutput/signed_files.zip
-          fi
-
-      - name: unzip exe and msi
-        continue-on-error: true
-        shell: pwsh
-        run: |
-          Expand-Archive -Path ./SignOutput/signed_files.zip -DestinationPath ./SignOutput/ -Force
-          Remove-Item ./SignOutput/unsigned_files.zip
-          Remove-Item ./SignOutput/signed_files.zip
+          $pfxBytes = [Convert]::FromBase64String("${{ secrets.WINDOWS_PFX_BASE64 }}")
+          [IO.File]::WriteAllBytes("$PWD/certificate.pfx", $pfxBytes)
+          $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe |
+                      Where-Object { $_.FullName -match "x64" } |
+                      Select-Object -First 1 -ExpandProperty FullName
+          if (-not $signtool) { Write-Host "signtool not found, skipping"; Remove-Item certificate.pfx; exit 0 }
+          Write-Host "Using signtool: $signtool"
+          $files = Get-ChildItem ./SignOutput -Include @("*.exe","*.msi") -File
+          foreach ($f in $files) {
+            & $signtool sign /fd SHA256 /f certificate.pfx /p "${{ secrets.WINDOWS_PFX_PASSWORD }}" `
+              /tr http://timestamp.digicert.com /td SHA256 $f.FullName
+          }
+          Remove-Item certificate.pfx
 
       - name: rename rustdesk.exe to filename.exe
         run: |
