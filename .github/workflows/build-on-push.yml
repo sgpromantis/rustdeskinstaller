@@ -44,7 +44,7 @@ jobs:
           print(base64.b64encode(json.dumps(custom).encode()).decode())
           ")
           UUID=$(python3 -c "import uuid; print(uuid.uuid4())")
-          EXTRAS='{"version":"1.4.6","rdgen":"true","compname":"Promantis","slogan":"professionell. progressiv. proaktiv.","delayFix":"false","cycleMonitor":"false","xOffline":"false","hidecm":"false","statussort":"false","removeNewVersionNotif":"false","urlLink":"https://promantis.de","downloadLink":"https://supporttool.promantis.de"}'
+          EXTRAS="{\"version\":\"1.4.6\",\"rdgen\":\"true\",\"compname\":\"Promantis\",\"slogan\":\"professionell. progressiv. proaktiv.\",\"delayFix\":\"false\",\"cycleMonitor\":\"false\",\"xOffline\":\"false\",\"hidecm\":\"false\",\"statussort\":\"false\",\"removeNewVersionNotif\":\"false\",\"urlLink\":\"${{ vars.COMPANY_URL }}\",\"downloadLink\":\"${{ vars.DOWNLOAD_URL }}\"}"
           echo "custom=$CUSTOM" >> $GITHUB_OUTPUT
           echo "extras=$EXTRAS" >> $GITHUB_OUTPUT
           echo "uuid=$UUID" >> $GITHUB_OUTPUT
@@ -53,13 +53,13 @@ jobs:
     needs: prepare
     uses: ./.github/workflows/generator-windows.yml
     with:
-      server: "rustdesk.promantis.de"
-      key: "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk="
-      apiServer: "https://rustdesk.promantis.de"
+      server: ${{ vars.RUSTDESK_SERVER }}
+      key: ${{ secrets.RUSTDESK_KEY }}
+      apiServer: ${{ vars.RUSTDESK_API_SERVER }}
       custom: ${{ needs.prepare.outputs.custom }}
       uuid: ${{ needs.prepare.outputs.uuid }}
-      iconlink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
-      logolink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
+      iconlink: ${{ vars.LOGO_URL }}
+      logolink: ${{ vars.LOGO_URL }}
       appname: "Promantis Remote"
       filename: "promantis_remote"
       extras: ${{ needs.prepare.outputs.extras }}
@@ -70,13 +70,13 @@ jobs:
     needs: prepare
     uses: ./.github/workflows/generator-linux.yml
     with:
-      server: "rustdesk.promantis.de"
-      key: "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk="
-      apiServer: "https://rustdesk.promantis.de"
+      server: ${{ vars.RUSTDESK_SERVER }}
+      key: ${{ secrets.RUSTDESK_KEY }}
+      apiServer: ${{ vars.RUSTDESK_API_SERVER }}
       custom: ${{ needs.prepare.outputs.custom }}
       uuid: ${{ needs.prepare.outputs.uuid }}
-      iconlink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
-      logolink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
+      iconlink: ${{ vars.LOGO_URL }}
+      logolink: ${{ vars.LOGO_URL }}
       appname: "Promantis Remote"
       filename: "promantis_remote"
       extras: ${{ needs.prepare.outputs.extras }}
@@ -87,13 +87,13 @@ jobs:
     needs: prepare
     uses: ./.github/workflows/generator-macos.yml
     with:
-      server: "rustdesk.promantis.de"
-      key: "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk="
-      apiServer: "https://rustdesk.promantis.de"
+      server: ${{ vars.RUSTDESK_SERVER }}
+      key: ${{ secrets.RUSTDESK_KEY }}
+      apiServer: ${{ vars.RUSTDESK_API_SERVER }}
       custom: ${{ needs.prepare.outputs.custom }}
       uuid: ${{ needs.prepare.outputs.uuid }}
-      iconlink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
-      logolink: "https://raw.githubusercontent.com/sgpromantis/rustdeskinstaller/master/promantis_logo_2048_white.png"
+      iconlink: ${{ vars.LOGO_URL }}
+      logolink: ${{ vars.LOGO_URL }}
       appname: "Promantis Remote"
       filename: "promantis_remote"
       extras: ${{ needs.prepare.outputs.extras }}

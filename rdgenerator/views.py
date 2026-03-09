@@ -147,7 +147,7 @@ def generator_view(request):
                     decodedCustom['hide-proxy-settings'] = 'Y'
                 if hideWebsocketSettings:
                     decodedCustom['hide-websocket-settings'] = 'Y'
-            if appname.upper != "rustdesk".upper and appname != "":
+            if appname.upper() != "rustdesk".upper() and appname != "":
                 decodedCustom['app-name'] = appname
             decodedCustom['override-settings'] = {}
             decodedCustom['default-settings'] = {}
@@ -243,12 +243,8 @@ def generator_view(request):
                 url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-windows.yml/dispatches' 
             elif platform == 'linux':
                 url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-linux.yml/dispatches'  
-            elif platform == 'android':
-                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-android.yml/dispatches'
             elif platform == 'macos':
                 url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-macos.yml/dispatches'
-            elif platform == 'macos-x86':
-                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-macos-x86.yml/dispatches'   
             else:
                 url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-windows.yml/dispatches'
                 
@@ -318,10 +314,9 @@ def check_for_file(request):
         return render(request, 'waiting.html', {'filename':filename, 'uuid':uuid, 'status':status, 'platform':platform})
 
 def download(request):
-    filename = request.GET['filename']
-    uuid = request.GET['uuid']
-    #filename = filename+".exe"
-    file_path = os.path.join('exe',uuid,filename)
+    filename = os.path.basename(request.GET['filename'])
+    uuid = os.path.basename(request.GET['uuid'])
+    file_path = os.path.join('exe', uuid, filename)
     with open(file_path, 'rb') as file:
         response = HttpResponse(file, headers={
             'Content-Type': 'application/vnd.microsoft.portable-executable',
@@ -331,10 +326,9 @@ def download(request):
     return response
 
 def get_png(request):
-    filename = request.GET['filename']
-    uuid = request.GET['uuid']
-    #filename = filename+".exe"
-    file_path = os.path.join('png',uuid,filename)
+    filename = os.path.basename(request.GET['filename'])
+    uuid = os.path.basename(request.GET['uuid'])
+    file_path = os.path.join('png', uuid, filename)
     with open(file_path, 'rb') as file:
         response = HttpResponse(file, headers={
             'Content-Type': 'application/vnd.microsoft.portable-executable',
