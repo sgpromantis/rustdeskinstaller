@@ -736,24 +736,48 @@ jobs:
 
           ignoreSsl: true
       
+      - name: Prepare signing certificate
+        shell: pwsh
+        run: |
+          if ("${{ secrets.WINDOWS_PFX_BASE64 }}" -ne "") {
+            Write-Host "Using provided PFX certificate"
+            $pfxBytes = [Convert]::FromBase64String("${{ secrets.WINDOWS_PFX_BASE64 }}")
+            [IO.File]::WriteAllBytes("$env:GITHUB_WORKSPACE/certificate.pfx", $pfxBytes)
+            "CERT_PASSWORD=${{ secrets.WINDOWS_PFX_PASSWORD }}" | Out-File -Append $env:GITHUB_ENV
+            "CERT_SELF_SIGNED=false" | Out-File -Append $env:GITHUB_ENV
+          } else {
+            Write-Host "No PFX secret set - generating self-signed code signing certificate"
+            $cert = New-SelfSignedCertificate `
+              -Subject "CN=Promantis Remote, O=Promantis, C=DE" `
+              -Type CodeSigningCert `
+              -KeyUsage DigitalSignature `
+              -FriendlyName "Promantis Code Signing" `
+              -CertStoreLocation Cert:\CurrentUser\My `
+              -NotAfter (Get-Date).AddYears(5)
+            $certPass = "PromantisSign_$(Get-Date -Format 'yyyyMMdd')"
+            $pwd = ConvertTo-SecureString -String $certPass -Force -AsPlainText
+            Export-PfxCertificate -Cert $cert -FilePath "$env:GITHUB_WORKSPACE/certificate.pfx" -Password $pwd | Out-Null
+            Export-Certificate -Cert $cert -FilePath "$env:GITHUB_WORKSPACE/promantis_codesigning.cer" -Type CERT | Out-Null
+            "CERT_PASSWORD=$certPass" | Out-File -Append $env:GITHUB_ENV
+            "CERT_SELF_SIGNED=true" | Out-File -Append $env:GITHUB_ENV
+            Write-Host "Self-signed cert generated. Download the 'promantis-codesigning-cert' artifact and deploy via GPO to trusted machines."
+          }
+          "CERT_PATH=$env:GITHUB_WORKSPACE/certificate.pfx" | Out-File -Append $env:GITHUB_ENV
+
       - name: Sign DLLs and runtime files
-        if: env.WINDOWS_PFX_BASE64 != ''
         continue-on-error: true
         shell: pwsh
         run: |
-          $pfxBytes = [Convert]::FromBase64String("${{ secrets.WINDOWS_PFX_BASE64 }}")
-          [IO.File]::WriteAllBytes("$PWD/certificate.pfx", $pfxBytes)
           $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe |
                       Where-Object { $_.FullName -match "x64" } |
                       Select-Object -First 1 -ExpandProperty FullName
-          if (-not $signtool) { Write-Host "signtool not found, skipping"; Remove-Item certificate.pfx; exit 0 }
+          if (-not $signtool) { Write-Host "signtool not found, skipping"; exit 0 }
           Write-Host "Using signtool: $signtool"
           $files = Get-ChildItem ./rustdesk -Include @("*.dll","*.exe") -File
           foreach ($f in $files) {
-            & $signtool sign /fd SHA256 /f certificate.pfx /p "${{ secrets.WINDOWS_PFX_PASSWORD }}" `
+            & $signtool sign /fd SHA256 /f "$env:CERT_PATH" /p "$env:CERT_PASSWORD" `
               /tr http://timestamp.digicert.com /td SHA256 $f.FullName
           }
-          Remove-Item certificate.pfx
 
       - name: Create custom.txt file
         shell: bash
@@ -841,23 +865,27 @@ jobs:
           ignoreSsl: true
 
       - name: Sign EXE and MSI
-        if: env.WINDOWS_PFX_BASE64 != ''
         continue-on-error: true
         shell: pwsh
         run: |
-          $pfxBytes = [Convert]::FromBase64String("${{ secrets.WINDOWS_PFX_BASE64 }}")
-          [IO.File]::WriteAllBytes("$PWD/certificate.pfx", $pfxBytes)
           $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe |
                       Where-Object { $_.FullName -match "x64" } |
                       Select-Object -First 1 -ExpandProperty FullName
-          if (-not $signtool) { Write-Host "signtool not found, skipping"; Remove-Item certificate.pfx; exit 0 }
+          if (-not $signtool) { Write-Host "signtool not found, skipping"; exit 0 }
           Write-Host "Using signtool: $signtool"
           $files = Get-ChildItem ./SignOutput -Include @("*.exe","*.msi") -File
           foreach ($f in $files) {
-            & $signtool sign /fd SHA256 /f certificate.pfx /p "${{ secrets.WINDOWS_PFX_PASSWORD }}" `
+            & $signtool sign /fd SHA256 /f "$env:CERT_PATH" /p "$env:CERT_PASSWORD" `
               /tr http://timestamp.digicert.com /td SHA256 $f.FullName
           }
-          Remove-Item certificate.pfx
+          if (Test-Path "$env:CERT_PATH") { Remove-Item "$env:CERT_PATH" -Force }
+
+      - name: Upload self-signed certificate for GPO distribution
+        if: env.CERT_SELF_SIGNED == 'true' && env.UPLOAD_ARTIFACT == 'true'
+        uses: actions/upload-artifact@master
+        with:
+          name: ${{ inputs.artifact-prefix }}promantis-codesigning-cert
+          path: ${{ github.workspace }}/promantis_codesigning.cer
 
       - name: rename rustdesk.exe to filename.exe
         run: |
