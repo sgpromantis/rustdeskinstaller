@@ -40,24 +40,22 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True            
-
-#ALLOWED_HOSTS = ['*']
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
 if GENURL:
     parsed = urlparse(GENURL)
     host = parsed.hostname
     if not host:
         raise ValueError(f"Invalid GENURL: {GENURL}")
-    ALLOWED_HOSTS = [host, 'creator.nas86.eu']
-
     scheme = parsed.scheme or 'https'
     port = f":{parsed.port}" if parsed.port else ""
     auto_origin = f"{scheme}://{host}{port}"
+    ALLOWED_HOSTS = [host]
+    CSRF_TRUSTED_ORIGINS = [auto_origin]
 else:
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1", 'creator.nas86.eu']
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
     auto_origin = None
-#CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split()
+    CSRF_TRUSTED_ORIGINS = ["http://localhost:8000", "http://127.0.0.1:8000"]
 
 # Application definition
 
@@ -75,7 +73,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    #'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
