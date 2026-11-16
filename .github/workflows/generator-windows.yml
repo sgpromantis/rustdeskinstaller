@@ -339,6 +339,9 @@ jobs:
           Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/removeSetupServerTip.diff -OutFile removeSetupServerTip.diff
           git apply removeSetupServerTip.diff
 
+      - name: Harden permanent password storage
+        uses: ./.github/actions/harden-permanent-password
+
 
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v1
@@ -556,13 +559,13 @@ jobs:
         continue-on-error: true
         run: |
           Write-Host "=== DISABLE SETTINGS CHECK ==="
-          Write-Host "Custom config content: ${{ inputs.custom }}"
+          Write-Host "Custom config present (contents not logged)"
           
           # Decode base64 and check for disable-settings: Y
           try {
             $decodedBytes = [System.Convert]::FromBase64String("${{ inputs.custom }}")
             $decodedConfig = [System.Text.Encoding]::UTF8.GetString($decodedBytes)
-            Write-Host "Decoded config: $decodedConfig"
+            Write-Host "Decoded config not logged"
             
             # Check for global disable-settings OR any granular hide-settings
             if ($decodedConfig -match '"disable-settings"\s*:\s*"Y"') {

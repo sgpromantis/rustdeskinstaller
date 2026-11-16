@@ -1,0 +1,21 @@
+name: Harden permanent password storage
+description: Patch RustDesk 1.4.6 so custom.txt passwords are hashed verifiers, not plaintext
+runs:
+  using: composite
+  steps:
+    - name: Apply hashed password source patch
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        curl -fsSL \
+          -H "Authorization: Bearer ${GH_TOKEN}" \
+          -H "Accept: application/vnd.github.raw" \
+          "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/.github/patches/harden_permanent_password.py?ref=${GITHUB_SHA}" \
+          -o harden_permanent_password.py
+        if command -v python3 >/dev/null 2>&1; then
+          python3 harden_permanent_password.py
+        else
+          python harden_permanent_password.py
+        fi

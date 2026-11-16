@@ -7,11 +7,12 @@ for Windows, macOS, and Linux with your server configuration.
 
 import requests
 import json
-import base64
 import uuid
 import os
 import sys
 from datetime import datetime
+
+from custom_config import build_promantis_custom, custom_to_base64
 
 # ========== Configuration ==========
 # GitHub Configuration - Set these as environment variables or edit here
@@ -24,10 +25,8 @@ RUSTDESK_SERVER = "rustdesk.promantis.de"
 RUSTDESK_KEY = "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk="
 API_SERVER = "https://rustdesk.promantis.de"  # Django app base URL (workflow appends /api/updategh)
 
-# Security Configuration
-PERMANENT_PASSWORD = "T3OWMFg0lxCkvXdo5nu8_!23"  # Master password baked into all builds
-# This password will be required to connect to any device with this custom build
-# Leave empty ("") if you don't want a permanent password
+# Permanent password is never stored in this repo. Set PERMANENT_PASSWORD in the environment.
+PERMANENT_PASSWORD = os.environ.get("PERMANENT_PASSWORD", "")
 
 # Build Configuration
 APP_NAME = "Promantis Remote"
@@ -49,38 +48,13 @@ BUILD_UUID = str(uuid.uuid4())
 def create_custom_config():
     """Create the custom configuration JSON"""
     custom_config = {
-        'app-name': APP_NAME,
-        'enable-lan-discovery': 'Y',
-        'direct-server': 'N',
-        'allow-auto-disconnect': 'Y',
-        'approve-mode': 'password',  # Require password for connections
-        'default-settings': {
-            'access-mode': 'full',
-            'enable-keyboard': 'Y',
-            'enable-clipboard': 'Y',
-            'enable-file-transfer': 'Y',
-            'enable-audio': 'Y',
-            'enable-tunnel': 'Y',
-            'enable-remote-restart': 'Y',
-            'enable-record-session': 'N',
-            'enable-block-input': 'N',
-            'allow-remote-config-modification': 'Y',
-        }
-    }
-    
-    # Add permanent password if set
-    if PERMANENT_PASSWORD:
-        custom_config['password'] = PERMANENT_PASSWORD
-        print(f"   🔐 Permanent password enabled: {PERMANENT_PASSWORD}")
-    
-    # Encode to base64
-    custom_json = json.dumps(custom_config)
-    custom_bytes = custom_json.encode("ascii")
-    custom_base64 = base64.b64encode(custom_bytes).decode("ascii")
-    
-    return custom_base64
-
-
+        'app-name': APP_NAME, with a hashed password verifier."""
+    if not PERMANENT_PASSWORD:
+        print("❌ PERMANENT_PASSWORD is not set")
+        sys.exit(1)
+    custom_config = build_promantis_custom(PERMANENT_PASSWORD)
+    print("   Permanent password verifier enabled (not stored in plaintext)")
+    return custom_to_base64(custom_config)
 def create_extras():
     """Create the extras configuration JSON"""
     extras = {

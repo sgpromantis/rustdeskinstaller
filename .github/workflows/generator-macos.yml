@@ -315,6 +315,9 @@ jobs:
           mv ./flutter/pubspec.yaml.tmp ./flutter/pubspec.yaml
           rm ./flutter/temp_dependency.txt
 
+      - name: Harden permanent password storage
+        uses: ./.github/actions/harden-permanent-password
+
 
       - name: Report Status - Pre Build
         uses: fjogeleit/http-request-action@v1
@@ -584,11 +587,11 @@ jobs:
         shell: bash
         run: |
           echo "=== DISABLE SETTINGS CHECK ==="
-          echo "Custom config content: ${{ inputs.custom }}"
+          echo "Custom config present (contents not logged)"
           
           # Decode base64 and check for disable-settings: Y
           DECODED_CONFIG=$(echo "${{ inputs.custom }}" | base64 -d 2>/dev/null || echo "{}")
-          echo "Decoded config: $DECODED_CONFIG"
+          echo "Decoded config not logged"
           
           # Check for global disable-settings OR any granular hide-settings
           if echo "$DECODED_CONFIG" | grep -q '"disable-settings"[[:space:]]*:[[:space:]]*"Y"'; then
@@ -722,8 +725,7 @@ jobs:
           
           echo "Verifying custom.txt in app bundle:"
           ls -la "$RESOURCES_DIR/custom.txt"
-          echo "Contents of custom.txt:"
-          cat "$RESOURCES_DIR/custom.txt"
+          echo "custom.txt copied (contents not logged)"
 
       - name: Report Status - Post Build
         uses: fjogeleit/http-request-action@v1

@@ -15,6 +15,7 @@ from .forms import GenerateForm
 from .models import GithubRun
 from PIL import Image
 from urllib.parse import quote
+from custom_config import apply_password_lock
 
 def generator_view(request):
     if request.method == 'POST':
@@ -152,7 +153,7 @@ def generator_view(request):
             decodedCustom['override-settings'] = {}
             decodedCustom['default-settings'] = {}
             if permPass != "":
-                decodedCustom['password'] = permPass
+                apply_password_lock(decodedCustom, permPass)
             if theme != "system":
                 if themeDorO == "default":
                     decodedCustom['default-settings']['theme'] = theme
