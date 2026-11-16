@@ -204,8 +204,15 @@ jobs:
           repository: rustdesk/rustdesk
           submodules: recursive
 
+      - name: Checkout installer patches
+        uses: actions/checkout@v4
+        with:
+          path: _installer
+          persist-credentials: false
+
       - name: Apply installer patches
-        uses: ./.github/actions/apply-installer-patches
+        shell: bash
+        run: bash _installer/.github/scripts/apply-installer-patches.sh
 
       - name: Restore bridge files
         uses: actions/download-artifact@master
