@@ -1,5 +1,5 @@
-name: Build Promantis Remote on Push
-run-name: Build Promantis Remote (push to master)
+name: Build Promantis Support Tool on Push
+run-name: Build Promantis Support Tool (push to master)
 on:
   push:
     branches: [master]
@@ -58,8 +58,8 @@ jobs:
       uuid: ${{ needs.prepare.outputs.uuid }}
       iconlink: ${{ vars.LOGO_URL != '' && vars.LOGO_URL || 'false' }}
       logolink: ${{ vars.LOGO_URL != '' && vars.LOGO_URL || 'false' }}
-      appname: "Promantis Remote"
-      filename: "promantis_remote"
+      appname: "Promantis Support Tool"
+      filename: "promantis_support_tool"
       extras: ${{ needs.prepare.outputs.extras }}
       artifact-prefix: "win-"
     secrets: inherit
@@ -75,8 +75,8 @@ jobs:
       uuid: ${{ needs.prepare.outputs.uuid }}
       iconlink: ${{ vars.LOGO_URL != '' && vars.LOGO_URL || 'false' }}
       logolink: ${{ vars.LOGO_URL != '' && vars.LOGO_URL || 'false' }}
-      appname: "Promantis Remote"
-      filename: "promantis_remote"
+      appname: "Promantis Support Tool"
+      filename: "promantis_support_tool"
       extras: ${{ needs.prepare.outputs.extras }}
       artifact-prefix: "linux-"
     secrets: inherit
@@ -92,8 +92,8 @@ jobs:
       uuid: ${{ needs.prepare.outputs.uuid }}
       iconlink: ${{ vars.LOGO_URL != '' && vars.LOGO_URL || 'false' }}
       logolink: ${{ vars.LOGO_URL != '' && vars.LOGO_URL || 'false' }}
-      appname: "Promantis Remote"
-      filename: "promantis_remote"
+      appname: "Promantis Support Tool"
+      filename: "promantis_support_tool"
       extras: ${{ needs.prepare.outputs.extras }}
       artifact-prefix: "macos-"
     secrets: inherit

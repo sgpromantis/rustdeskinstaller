@@ -1,4 +1,4 @@
-# Local Windows build for Promantis Remote (RustDesk 1.4.6)
+# Local Windows build for Promantis Support Tool (RustDesk 1.4.6)
 # Installs user-level toolchain, clones rustdesk, applies branding, builds portable exe.
 # Requires Visual Studio C++ tools (MSVC). VS 2026 Professional alone is not enough.
 
@@ -19,8 +19,8 @@ $SrcDir = Join-Path $ToolsRoot "rustdesk"
 $OutDir = Join-Path $RepoRoot "dist\windows"
 $GitBash = "C:\Program Files\Git\bin\bash.exe"
 
-$AppName = "Promantis Remote"
-$FileName = "promantis_remote"
+$AppName = "Promantis Support Tool"
+$FileName = "promantis_support_tool"
 $CompanyName = "Promantis"
 $Version = "1.4.6"
 $Server = "rustdesk.promantis.de"

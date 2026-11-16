@@ -29,8 +29,8 @@ API_SERVER = "https://rustdesk.promantis.de"  # Django app base URL (workflow ap
 PERMANENT_PASSWORD = os.environ.get("PERMANENT_PASSWORD", "")
 
 # Build Configuration
-APP_NAME = "Promantis Remote"
-FILE_NAME = "promantis_remote"
+APP_NAME = "Promantis Support Tool"
+FILE_NAME = "promantis_support_tool"
 COMPANY_NAME = "Promantis"
 VERSION = "1.4.6"  # RustDesk version to build (latest: 1.4.6)
 

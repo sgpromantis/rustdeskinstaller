@@ -56,26 +56,29 @@ def apply_password_lock(custom: Dict[str, Any], password: str) -> Dict[str, Any]
         custom["password"] = hashed
         custom["disable-change-permanent-password"] = "Y"
         custom["hide-security-settings"] = "Y"
-        custom["locked-verification-method"] = "Y"
         custom["approve-mode"] = "password"
         defaults = custom.setdefault("default-settings", {})
         defaults["allow-remote-config-modification"] = "N"
-        defaults["verification-method"] = "use-permanent-password"
+        defaults["verification-method"] = "use-both-passwords"
         defaults["approve-mode"] = "password"
+        defaults["temporary-password-length"] = defaults.get(
+            "temporary-password-length", "8"
+        )
         overrides = custom.setdefault("override-settings", {})
         overrides["allow-remote-config-modification"] = "N"
-        overrides["verification-method"] = "use-permanent-password"
+        overrides["verification-method"] = "use-both-passwords"
         overrides["approve-mode"] = "password"
     return custom
 
 
 def build_promantis_custom(password: str) -> Dict[str, Any]:
     custom: Dict[str, Any] = {
-        "app-name": "Promantis Remote",
+        "app-name": "Promantis Support Tool",
         "enable-lan-discovery": "Y",
         "direct-server": "N",
         "allow-auto-disconnect": "Y",
         "approve-mode": "password",
+        "disable-installation": "Y",
         "default-settings": {
             "access-mode": "full",
             "enable-keyboard": "Y",
@@ -87,6 +90,28 @@ def build_promantis_custom(password: str) -> Dict[str, Any]:
             "enable-record-session": "N",
             "enable-block-input": "N",
             "allow-remote-config-modification": "N",
+            "hide-help-cards": "Y",
+            "allow-websocket": "Y",
+            "custom-rendezvous-server": "rustdesk.promantis.de:21116",
+            "relay-server": "rustdesk.promantis.de:21117",
+            "api-server": "https://rustdesk.promantis.de",
+            "key": "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk=",
+            "verification-method": "use-both-passwords",
+            "approve-mode": "password",
+            "temporary-password-length": "8",
+            "show_monitors_toolbar": "Y",
+            "show_remote_cursor": "Y",
+            "follow_remote_cursor": "Y",
+            "follow_remote_window": "Y",
+        },
+        "override-settings": {
+            "custom-rendezvous-server": "rustdesk.promantis.de:21116",
+            "relay-server": "rustdesk.promantis.de:21117",
+            "api-server": "https://rustdesk.promantis.de",
+            "key": "CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk=",
+            "allow-websocket": "Y",
+            "verification-method": "use-both-passwords",
+            "approve-mode": "password",
         },
     }
     return apply_password_lock(custom, password)
