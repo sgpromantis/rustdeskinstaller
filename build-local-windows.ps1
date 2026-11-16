@@ -392,7 +392,11 @@ sed -i -e 's|OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=|$Key|' ./libs/hbb_comm
 sed -i -e 's|https://admin.rustdesk.com|$ApiServer|' ./src/common.rs
 "@
 
-        foreach ($diffName in @("allowCustom.diff", "removeSetupServerTip.diff")) {
+        $allowCustom = Join-Path $RepoRoot ".github\patches\allowCustom.py"
+        python $allowCustom
+        if ($LASTEXITCODE -ne 0) { throw "allowCustom.py failed" }
+
+        foreach ($diffName in @("removeSetupServerTip.diff")) {
             $diff = Join-Path $RepoRoot ".github\patches\$diffName"
             if (-not (Test-Path $diff)) { continue }
             git apply $diff --whitespace=nowarn

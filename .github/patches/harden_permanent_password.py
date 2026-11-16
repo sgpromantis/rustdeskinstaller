@@ -151,6 +151,9 @@ VALIDATE_PASSWORD_NEW = """        if password::permanent_enabled() {
 
 def replace_once(path: Path, old: str, new: str) -> None:
     text = path.read_text(encoding="utf-8")
+    if old not in text and new in text:
+        print(f"already patched {path}")
+        return
     matches = text.count(old)
     if matches != 1:
         raise SystemExit(f"expected exactly one match in {path}, found {matches}")

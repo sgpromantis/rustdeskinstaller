@@ -53,9 +53,20 @@ def remove_line_block(filepath, start_phrase, lines_to_remove_after_start):
         print(f"An error occurred while writing to the file: {e}")
 
 def main():
-    file_path = 'src/common.rs' 
+    file_path = 'src/common.rs'
     start_phrase = 'const KEY: &str = "5Qbwsde3unUcJBtrx9ZkvUmwFNoExHzpryHuPUdqlWM=";'
-    lines_to_remove_after_start = 8 
+    lines_to_remove_after_start = 8
+    try:
+        text = open(file_path, 'r', encoding='utf-8').read()
+    except FileNotFoundError:
+        print(f"Error: File not found at {file_path}")
+        raise SystemExit(1)
+    if start_phrase not in text:
+        if 'Failed to parse public key of custom client' not in text:
+            print(f"already patched {file_path}")
+            return
+        print(f"custom client signature block not found in {file_path}")
+        raise SystemExit(1)
     remove_line_block(file_path, start_phrase, lines_to_remove_after_start)
 
 if __name__ == "__main__":
