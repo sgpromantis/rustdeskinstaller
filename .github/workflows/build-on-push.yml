@@ -15,6 +15,7 @@ jobs:
       custom: ${{ steps.config.outputs.custom }}
       extras: ${{ steps.config.outputs.extras }}
       uuid: ${{ steps.config.outputs.uuid }}
+      key: ${{ steps.config.outputs.key }}
     steps:
       - uses: actions/checkout@v4
       - name: Generate build configuration
@@ -22,6 +23,7 @@ jobs:
         env:
           PERMANENT_PASSWORD: ${{ secrets.PERMANENT_PASSWORD }}
           PERMANENT_PASSWORD_SALT: ${{ secrets.PERMANENT_PASSWORD_SALT }}
+          RUSTDESK_KEY: ${{ secrets.RUSTDESK_KEY }}
         run: |
           set -euo pipefail
           if [ -z "${PERMANENT_PASSWORD}" ]; then
@@ -32,6 +34,7 @@ jobs:
             echo "Missing repository secret PERMANENT_PASSWORD_SALT (32 hex chars, same as local .env)" >&2
             exit 1
           fi
+          KEY="${RUSTDESK_KEY:-CctpHu85Bw1iuBwgZTATOjntfQkmqYc1yvs5m2pN+Vk=}"
           CUSTOM=$(python3 custom_config.py)
           UUID=$(python3 -c "import uuid; print(uuid.uuid4())")
           COMPANY_URL="${{ vars.COMPANY_URL }}"
@@ -42,13 +45,14 @@ jobs:
           echo "custom=$CUSTOM" >> $GITHUB_OUTPUT
           echo "extras=$EXTRAS" >> $GITHUB_OUTPUT
           echo "uuid=$UUID" >> $GITHUB_OUTPUT
+          echo "key=$KEY" >> $GITHUB_OUTPUT
 
   build-windows:
     needs: prepare
     uses: ./.github/workflows/generator-windows.yml
     with:
       server: ${{ vars.RUSTDESK_SERVER != '' && vars.RUSTDESK_SERVER || 'rustdesk.promantis.de' }}
-      key: ${{ secrets.RUSTDESK_KEY }}
+      key: ${{ needs.prepare.outputs.key }}
       apiServer: ${{ vars.RUSTDESK_API_SERVER != '' && vars.RUSTDESK_API_SERVER || 'https://rustdesk.promantis.de' }}
       custom: ${{ needs.prepare.outputs.custom }}
       uuid: ${{ needs.prepare.outputs.uuid }}
@@ -65,7 +69,7 @@ jobs:
     uses: ./.github/workflows/generator-linux.yml
     with:
       server: ${{ vars.RUSTDESK_SERVER != '' && vars.RUSTDESK_SERVER || 'rustdesk.promantis.de' }}
-      key: ${{ secrets.RUSTDESK_KEY }}
+      key: ${{ needs.prepare.outputs.key }}
       apiServer: ${{ vars.RUSTDESK_API_SERVER != '' && vars.RUSTDESK_API_SERVER || 'https://rustdesk.promantis.de' }}
       custom: ${{ needs.prepare.outputs.custom }}
       uuid: ${{ needs.prepare.outputs.uuid }}
@@ -82,7 +86,7 @@ jobs:
     uses: ./.github/workflows/generator-macos.yml
     with:
       server: ${{ vars.RUSTDESK_SERVER != '' && vars.RUSTDESK_SERVER || 'rustdesk.promantis.de' }}
-      key: ${{ secrets.RUSTDESK_KEY }}
+      key: ${{ needs.prepare.outputs.key }}
       apiServer: ${{ vars.RUSTDESK_API_SERVER != '' && vars.RUSTDESK_API_SERVER || 'https://rustdesk.promantis.de' }}
       custom: ${{ needs.prepare.outputs.custom }}
       uuid: ${{ needs.prepare.outputs.uuid }}
