@@ -372,11 +372,9 @@ sed -i -e 's|\"RustDesk\"|\"$AppName\"|' ./flutter/windows/runner/Runner.rc
 find ./src/lang -name '*.rs' -exec sed -i -e 's|RustDesk|$AppName|' {} \;
 "@
 
-        Invoke-Bash @"
-sed -i -e 's|reg add {}|reg add \\\"{}\\\"|' ./src/platform/windows.rs
-sed -i -e 's|reg add HKEY_CLASSES_ROOT\\\\.{ext} /f|reg add \\\"HKEY_CLASSES_ROOT\\\\.{ext}\\\" /f|' ./src/platform/windows.rs
-sed -i -e 's|{subkey}|\\\"{subkey}\\\"|' ./src/platform/windows.rs
-"@
+        $quoteReg = Join-Path $RepoRoot ".github\patches\quote_windows_reg.py"
+        python $quoteReg (Join-Path $SrcDir "src\platform\windows.rs")
+        if ($LASTEXITCODE -ne 0) { throw "windows.rs registry quoting failed" }
 
         Invoke-BashSoft @"
 sed -i -e 's|Purslane Ltd|$CompanyName|' ./flutter/lib/desktop/pages/desktop_setting_page.dart ./res/msi/preprocess.py ./flutter/windows/runner/Runner.rc ./Cargo.toml ./libs/portable/Cargo.toml
@@ -394,18 +392,23 @@ sed -i -e 's|OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=|$Key|' ./libs/hbb_comm
 sed -i -e 's|https://admin.rustdesk.com|$ApiServer|' ./src/common.rs
 "@
 
-        try {
-            Invoke-WebRequest "https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/allowCustom.py" -OutFile "allowCustom.py"
-            git apply allowCustom.py --whitespace=nowarn
-        } catch { Write-Warning "allowCustom patch skipped: $_" }
-        try {
-            Invoke-WebRequest "https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/removeSetupServerTip.diff" -OutFile "removeSetupServerTip.diff"
-            git apply removeSetupServerTip.diff --whitespace=nowarn
-        } catch { Write-Warning "removeSetupServerTip patch skipped: $_" }
+        foreach ($diffName in @("allowCustom.diff", "removeSetupServerTip.diff")) {
+            $diff = Join-Path $RepoRoot ".github\patches\$diffName"
+            if (-not (Test-Path $diff)) { continue }
+            git apply $diff --whitespace=nowarn
+            if ($LASTEXITCODE -ne 0) { Write-Warning "$diffName skipped" }
+        }
 
         $harden = Join-Path $RepoRoot ".github\patches\harden_permanent_password.py"
         python $harden
         if ($LASTEXITCODE -ne 0) { throw "password harden patch failed" }
+
+        # Rust 1.75 does not know static_mut_refs (added later); keep the allow for newer rustc.
+        Get-ChildItem -Path (Join-Path $SrcDir "libs\hbb_common") -Recurse -Filter *.rs | ForEach-Object {
+            $fpText = [IO.File]::ReadAllText($_.FullName)
+            $fpPatched = $fpText.Replace("#[allow(static_mut_refs)]", "#[allow(unknown_lints, static_mut_refs)]")
+            if ($fpPatched -ne $fpText) { [IO.File]::WriteAllText($_.FullName, $fpPatched) }
+        }
 
         if (Test-Path $LogoPng) {
             Copy-Item $LogoPng .\res\icon.png -Force
@@ -442,6 +445,9 @@ function Install-CustomFlutterEngine {
         if (Test-Path $patch) {
             Push-Location $flutterRoot
             git apply $patch --whitespace=nowarn
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warning "Flutter 3.24.4 dropdown patch did not apply (safe to ignore on 3.24.5)"
+            }
             Pop-Location
         }
     } catch {
@@ -472,6 +478,30 @@ function Install-VcpkgDeps {
         if ($LASTEXITCODE -ne 0) {
             throw "vcpkg install failed"
         }
+    } finally {
+        Pop-Location
+    }
+}
+
+function Generate-FlutterBridge {
+    Write-Step "Generating flutter_rust_bridge"
+    Push-Location $SrcDir
+    try {
+        $bridge = Join-Path $SrcDir "src\bridge_generated.rs"
+        if ((Test-Path $bridge) -and ((Get-Item $bridge).Length -gt 0)) {
+            Write-Host "bridge_generated.rs already present"
+            return
+        }
+        cargo install cargo-expand --version 1.0.95 --locked
+        if ($LASTEXITCODE -ne 0) { throw "cargo install cargo-expand failed" }
+        cargo install flutter_rust_bridge_codegen --version 1.80.1 --features uuid --locked
+        if ($LASTEXITCODE -ne 0) { throw "cargo install flutter_rust_bridge_codegen failed" }
+        Push-Location flutter
+        flutter pub get
+        Pop-Location
+        flutter_rust_bridge_codegen --rust-input ./src/flutter_ffi.rs --dart-output ./flutter/lib/generated_bridge.dart --c-output ./flutter/windows/runner/bridge_generated.h
+        if ($LASTEXITCODE -ne 0) { throw "flutter_rust_bridge_codegen failed" }
+        if (-not (Test-Path $bridge)) { throw "src/bridge_generated.rs was not generated" }
     } finally {
         Pop-Location
     }
@@ -569,6 +599,7 @@ if (-not $SkipBuild) {
     Apply-Branding
     if (-not $SkipEngine) { Install-CustomFlutterEngine }
     if (-not $SkipVcpkg) { Install-VcpkgDeps }
+    Generate-FlutterBridge
     Build-RustDesk
 }
 

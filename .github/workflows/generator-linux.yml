@@ -212,6 +212,9 @@ jobs:
           repository: rustdesk/rustdesk
           submodules: recursive
 
+      - name: Apply installer patches
+        uses: ./.github/actions/apply-installer-patches
+
       - name: Set Swap Space
         if: ${{ matrix.job.arch == 'x86_64' }}
         uses: pierotofy/set-swap-space@master
@@ -343,17 +346,9 @@ jobs:
         run: |
           sed -i -e 's|rs-ny.rustdesk.com|${{ inputs.server }}|' ./libs/hbb_common/src/config.rs
           sed -i -e 's|OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=|${{ inputs.key }}|' ./libs/hbb_common/src/config.rs
-          wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/allowCustom.diff
-          git apply allowCustom.diff
-          wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/removeSetupServerTip.diff
-          git apply removeSetupServerTip.diff
           echo -n "${{ inputs.custom }}" | cat > ./custom.txt
-          # sed -i '/intl:/a \ \ archive: ^3.6.1' ./flutter/pubspec.yaml
           sed -i -e 's|https://admin.rustdesk.com|${{ inputs.apiServer }}|' ./src/common.rs
 
-      - name: Harden permanent password storage
-        uses: ./.github/actions/harden-permanent-password
-          
       - name: change url to custom
         if: fromJson(inputs.extras).urlLink != 'https://rustdesk.com'
         continue-on-error: true
@@ -613,7 +608,7 @@ jobs:
                   pushd /opt/flutter
                 ;;
               esac
-              git apply ${{ github.workspace }}/.github/patches/flutter_3.24.4_dropdown_menu_enableFilter.diff
+              git apply /workspace/_installer/.github/patches/flutter_3.24.4_dropdown_menu_enableFilter.diff || git apply ${{ github.workspace }}/_installer/.github/patches/flutter_3.24.4_dropdown_menu_enableFilter.diff || true
               popd
             fi
 

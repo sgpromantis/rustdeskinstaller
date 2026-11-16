@@ -9,13 +9,27 @@ runs:
         GH_TOKEN: ${{ github.token }}
       run: |
         set -euo pipefail
-        curl -fsSL \
-          -H "Authorization: Bearer ${GH_TOKEN}" \
-          -H "Accept: application/vnd.github.raw" \
-          "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/.github/patches/harden_permanent_password.py?ref=${GITHUB_SHA}" \
-          -o harden_permanent_password.py
+        SCRIPT=""
+        for candidate in \
+          _installer/.github/patches/harden_permanent_password.py \
+          .github/patches/harden_permanent_password.py \
+          harden_permanent_password.py
+        do
+          if [ -f "$candidate" ]; then
+            SCRIPT="$candidate"
+            break
+          fi
+        done
+        if [ -z "$SCRIPT" ]; then
+          curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github.raw" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/.github/patches/harden_permanent_password.py?ref=${GITHUB_SHA}" \
+            -o harden_permanent_password.py
+          SCRIPT=harden_permanent_password.py
+        fi
         if command -v python3 >/dev/null 2>&1; then
-          python3 harden_permanent_password.py
+          python3 "$SCRIPT"
         else
-          python harden_permanent_password.py
+          python "$SCRIPT"
         fi

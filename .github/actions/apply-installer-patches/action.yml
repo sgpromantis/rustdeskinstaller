@@ -1,0 +1,74 @@
+name: Apply installer patches
+description: Re-checkout this repo's patches onto rustdesk sources (quote registry, custom.txt, harden, lints)
+runs:
+  using: composite
+  steps:
+    - name: Checkout installer patches
+      uses: actions/checkout@v4
+      with:
+        path: _installer
+        persist-credentials: false
+
+    - name: Apply patches onto rustdesk tree
+      shell: bash
+      run: |
+        set -euo pipefail
+        PATCHES="_installer/.github/patches"
+        if [ ! -d "$PATCHES" ]; then
+          echo "missing $PATCHES" >&2
+          exit 1
+        fi
+
+        if command -v python3 >/dev/null 2>&1; then
+          PYTHON=python3
+        else
+          PYTHON=python
+        fi
+
+        apply_patch() {
+          local patch="$1"
+          local required="${2:-0}"
+          if [ ! -f "$patch" ]; then
+            echo "missing patch $patch" >&2
+            [ "$required" = "1" ] && return 1
+            return 0
+          fi
+          if git apply --check "$patch" >/dev/null 2>&1; then
+            git apply --whitespace=nowarn "$patch"
+            echo "applied $patch"
+          elif git apply --reverse --check "$patch" >/dev/null 2>&1; then
+            echo "already applied $patch"
+          else
+            echo "could not apply $patch" >&2
+            git apply --whitespace=nowarn "$patch" || true
+            [ "$required" = "1" ] && return 1
+          fi
+          return 0
+        }
+
+        if [ -f src/platform/windows.rs ]; then
+          "$PYTHON" "$PATCHES/quote_windows_reg.py" src/platform/windows.rs
+        fi
+
+        apply_patch "$PATCHES/allowCustom.diff" 1
+        apply_patch "$PATCHES/removeSetupServerTip.diff" 0
+
+        "$PYTHON" "$PATCHES/harden_permanent_password.py"
+
+        "$PYTHON" - <<'PY'
+        from pathlib import Path
+        root = Path("libs/hbb_common")
+        if not root.exists():
+            raise SystemExit(0)
+        old = "#[allow(static_mut_refs)]"
+        new = "#[allow(unknown_lints, static_mut_refs)]"
+        changed = 0
+        for path in root.rglob("*.rs"):
+            text = path.read_text(encoding="utf-8")
+            updated = text.replace(old, new)
+            if updated != text:
+                path.write_text(updated, encoding="utf-8")
+                changed += 1
+                print(f"unknown_lints {path}")
+        print(f"updated {changed} hbb_common files")
+        PY
